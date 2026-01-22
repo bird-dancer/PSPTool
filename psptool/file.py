@@ -30,13 +30,14 @@ if TYPE_CHECKING:
 SECONDARY_DIRECTORY_ENTRY_TYPES = [0x40, 0x49, 0x70]
 TERTIARY_DIRECTORY_ENTRY_TYPES = [0x48, 0x4a]
 
+
 class File(NestedBuffer):
 
     @classmethod
     def create_file_if_not_exists(cls, directory: 'Directory', entry: 'DirectoryEntry'):
         # APOBs do not have location nor size, so can be easily mistaken as duplicated
         # in multi-ROM files. There should be only one APOB per BIOS directory anyways.
-        if type(entry) == BiosDirectoryEntry and entry.type == 0x61:
+        if isinstance(entry, BiosDirectoryEntry) and entry.type == 0x61:
             file = cls.from_entry(directory, directory.parent_buffer, entry, directory.rom, directory.psptool)
             if file is not None:
                 return file
@@ -262,7 +263,7 @@ class File(NestedBuffer):
                 return KeyStoreFile(*file_args)
             elif entry.type not in cls.NO_HDR_ENTRY_TYPES + SECONDARY_DIRECTORY_ENTRY_TYPES:
                 return HeaderFile(*file_args)
-            elif type(entry) == BiosDirectoryEntry and entry.type == 0x66:
+            elif isinstance(entry, BiosDirectoryEntry) and entry.type == 0x66:
                 return MicrocodeFile(*file_args)
             else:
                 return cls(*file_args)
@@ -276,7 +277,7 @@ class File(NestedBuffer):
         self.entry = entry
         self.type = entry.type
 
-        if type(entry) == BiosDirectoryEntry:
+        if isinstance(entry, BiosDirectoryEntry):
             self.compressed = (self.entry.flags >> 3) & 1
         else:
             self.compressed = False
@@ -349,7 +350,7 @@ class File(NestedBuffer):
         pass
 
     def get_readable_type(self):
-        if type(self.entry) == BiosDirectoryEntry:
+        if isinstance(self.entry, BiosDirectoryEntry):
             if self.type == 0x62:
                 return "BIOS"
             if self.type == 0x61:

@@ -389,11 +389,11 @@ class CertificateTree:
         for rom in blob.roms:
             for dr in rom.directories:
                 for file in dr.files:
-                    if type(file) == PubkeyFile:
+                    if isinstance(file, PubkeyFile):
                         ct.add_pubkey_file(file)
-                    if type(file) == HeaderFile:
+                    if isinstance(file, HeaderFile):
                         ct.add_header_file(file)
-                    if type(file) == KeyStoreFile:
+                    if isinstance(file, KeyStoreFile):
                         ct.add_key_store_file(file)
 
         # Add unlisted/inline keys as found by additional blob parsing efforts

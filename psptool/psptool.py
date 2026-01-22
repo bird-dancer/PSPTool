@@ -142,7 +142,7 @@ class PSPTool:
                 if file.inline_keys:
                     inline_keys = ', '.join(map(lambda k: k.get_readable_magic(), file.inline_keys))
                     info.append(f'inline_keys({inline_keys})')
-            if type(file) == PubkeyFile:
+            if isinstance(file, PubkeyFile):
                 info.append(file.get_readable_key_usage())
                 if file.get_readable_security_features():
                     info.append(file.get_readable_security_features())
@@ -158,7 +158,7 @@ class PSPTool:
             if file.get_readable_type() == "APOB":
                 info.append(f'destination({file.get_readable_destination_address()})')
 
-            if type(file) == MicrocodeFile:
+            if isinstance(file, MicrocodeFile):
                 info.append(f'patch_level({hex(file.patch_level)})')
                 info.append(f'date({file.get_readable_date()})')
 

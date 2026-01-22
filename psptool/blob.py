@@ -130,14 +130,13 @@ class Blob(NestedBuffer):
             yield fet_offset
 
     def _find_inline_pubkeys(self, fp):
-
         """ Try to find a pubkey in any of the found files.
         The pubkey is identified by its fingerprint. If found, the pubkey is
         added to the list of pubkeys of the blob """
         found_pubkeys = []
 
         for file in self.unique_files():
-            if type(file) == PubkeyFile:
+            if isinstance(file, PubkeyFile):
                 continue  # Pubkeys don't have inline keys but will only produce false positives
             m = re.finditer(re.escape(binascii.a2b_hex(fp)), file.get_bytes())
             for index in m:

@@ -117,7 +117,7 @@ class NestedBuffer:
 # from https://stackoverflow.com/a/39358140
 class RangeDict(dict):
     def __getitem__(self, item):
-        if type(item) != range:
+        if not isinstance(item, range):
             for key in self:
                 if item in key:
                     return self[key]
