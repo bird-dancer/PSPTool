@@ -237,32 +237,34 @@ def main():
             parser.print_help(sys.stderr)
 
     elif args.replace_file:
-        if args.directory_index is not None and args.file_index is not None and args.outfile is not None:
-            file = psp.blob.roms[args.rom_index].directories[args.directory_index].files[args.file_index]
-
-            # Substituting a file is actually optional to allow plain re-signs
-            if args.subfile is not None:
-                with open(args.subfile, 'rb') as f:
-                    sub_binary = f.read()
-                # Keep the existing file's address, but adapt its size
-                file.move_buffer(file.get_address(), len(sub_binary))
-                file.set_bytes(0, sub_binary)
-
-            privkeys = None
-            if args.privkeystub:
-                privkeys = PrivateKeyDict.read_from_files(args.privkeystub, args.privkeypass)
-
-            if hasattr(file, 'signed_entity') and file.signed_entity:
-                file.signed_entity.resign_and_replace(privkeys=privkeys, recursive=True)
-            else:
-                ph.print_warning("Did not resign anything since target file is not signed")
-
-            psp.to_file(args.outfile)
-
-            if privkeys:
-                privkeys.save_to_files(args.privkeystub, args.privkeypass)
-        else:
+        if args.directory_index is None or args.file_index is None or args.outfile is None:
             parser.print_help(sys.stderr)
+            sys.exit(1)
+
+        file = psp.blob.roms[args.rom_index].directories[args.directory_index].files[args.file_index]
+
+        # Substituting a file is actually optional to allow plain re-signs
+        if args.subfile is not None:
+            with open(args.subfile, 'rb') as f:
+                sub_binary = f.read()
+            # Keep the existing file's address, but adapt its size
+            file.move_buffer(file.get_address(), len(sub_binary))
+            file.set_bytes(0, sub_binary)
+
+        privkeys = None
+        if args.privkeystub:
+            privkeys = PrivateKeyDict.read_from_files(args.privkeystub, args.privkeypass)
+
+        if hasattr(file, 'signed_entity') and file.signed_entity:
+            file.signed_entity.resign_and_replace(privkeys=privkeys, recursive=True)
+        else:
+            ph.print_warning("Did not resign anything since target file is not signed")
+
+        psp.to_file(args.outfile)
+
+        if privkeys:
+            privkeys.save_to_files(args.privkeystub, args.privkeypass)
+
     else:
         if args.json:
             psp.ls_json(verbose=args.verbose)
