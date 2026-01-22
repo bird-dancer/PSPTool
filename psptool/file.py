@@ -13,19 +13,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-import struct
 
 from .utils import NestedBuffer
 from .utils import shannon
 from .utils import zlib_find_header
 from .entry import BiosDirectoryEntry
 
-from enum import Enum
-
-from math import ceil
 from hashlib import md5
 
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .directory import Directory

@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .psptool import PSPTool
 from importlib.metadata import version
 
 __version__ = version("psptool")

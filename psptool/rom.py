@@ -1,7 +1,7 @@
 import re
 
-from .fet import Fet, EmptyFet
-from .utils import NestedBuffer, sole
+from .fet import Fet
+from .utils import NestedBuffer
 
 
 class Rom(NestedBuffer):

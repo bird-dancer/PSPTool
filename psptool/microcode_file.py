@@ -16,10 +16,9 @@
 
 import struct
 
-from binascii import hexlify
-
 from .file import BiosFile, File
 from .header_file import HeaderFile
+
 
 class MicrocodeFile(BiosFile):
     def __init__(self, parent_directory, parent_buffer, offset, entry, blob, psptool):
