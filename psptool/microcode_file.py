@@ -30,7 +30,7 @@ class MicrocodeFile(BiosFile):
             self.body = self.header.get_decrypted_decompressed_body()
             self.date = struct.unpack('<I', self.body[0:4])[0]
             self.patch_level = struct.unpack('<I', self.body[4:8])[0]
-        except File.ParseError as e:
+        except File.ParseError:
             self.header = None
             self.date = struct.unpack('<I', self[0:4])[0]
             self.patch_level = struct.unpack('<I', self[4:8])[0]

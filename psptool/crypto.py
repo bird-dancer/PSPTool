@@ -213,7 +213,7 @@ class RsaPublicKey(PublicKey, RsaKey):
 
     # to/from crypto material
     @classmethod
-    #override
+    # override
     def from_crypto_material(cls, crypto_material: bytes) -> PublicKey:
         if len(crypto_material) == 2 * cls.signature_size:
             pubexp = int.from_bytes(crypto_material[:cls.signature_size], 'little')
@@ -228,7 +228,7 @@ class RsaPublicKey(PublicKey, RsaKey):
 
         return cls(rsa.RSAPublicNumbers(pubexp, modulus).public_key())
 
-    #override
+    # override
     def get_crypto_material(self, size: int) -> bytes:
         numbers = self._public_key.public_numbers()
         modulus = numbers.n.to_bytes(self.signature_size, 'little')
@@ -243,7 +243,7 @@ class RsaPublicKey(PublicKey, RsaKey):
                     (expected 0x{self.signature_size:x} or 0x{2*self.signature_size:x})!')
 
     # core functionality
-    #override
+    # override
     def verify_blob(self, blob: bytes, signature: bytes) -> bool:
         pass
         try:
@@ -268,24 +268,24 @@ class RsaPrivateKey(PrivateKey, RsaKey):
 
     # generate out of thin air
     @classmethod
-    #override
+    # override
     def generate_new(cls) -> PrivateKey:
-        return cls(rsa.generate_private_key(public_exponent=0x10001,key_size=cls.key_bits))
+        return cls(rsa.generate_private_key(public_exponent=0x10001, key_size=cls.key_bits))
 
     # to/from file
     @classmethod
-    #override
+    # override
     def load_from_file(cls, filename: str, password: str = None) -> PrivateKey:
         if password:
             password = password.encode()
         with open(filename, 'rb') as f:
             return cls(load_pem_private_key(f.read(), password=password))
 
-    #override
+    # override
     def save_to_file(self, filename: str, password: str = None):
         encryption = NoEncryption()
         if password:
-            encryption=BestAvailableEncryption(password.encode())
+            encryption = BestAvailableEncryption(password.encode())
         with open(filename, 'wb+') as f:
             f.write(self._private_key.private_bytes(
                 encoding=Encoding.PEM,
@@ -294,11 +294,11 @@ class RsaPrivateKey(PrivateKey, RsaKey):
             ))
 
     # core functionality
-    #override
+    # override
     def get_public_key(self) -> PublicKey:
         return self.PublicKey(self._private_key.public_key())
 
-    #override
+    # override
     def sign_blob(self, blob: bytes) -> bytes:
         return self._private_key.sign(
             blob,
@@ -313,9 +313,10 @@ class Rsa2048PublicKey(RsaPublicKey):
         super().__init__(public_key)
 
     @classmethod
-    #override
+    # override
     def _signature_size(cls) -> int:
         return 0x100
+
 
 class Rsa2048PrivateKey(RsaPrivateKey):
 
@@ -323,12 +324,12 @@ class Rsa2048PrivateKey(RsaPrivateKey):
         super().__init__(private_key)
 
     @staticmethod
-    #override
+    # override
     def _PublicKey() -> PublicKey:
         return Rsa2048PublicKey
 
     @classmethod
-    #override
+    # override
     def _signature_size(cls) -> int:
         return 0x100
 
@@ -342,9 +343,10 @@ class Rsa4096PublicKey(RsaPublicKey):
         super().__init__(public_key)
 
     @classmethod
-    #override
+    # override
     def _signature_size(cls) -> int:
         return 0x200
+
 
 class Rsa4096PrivateKey(RsaPrivateKey):
 
@@ -352,14 +354,15 @@ class Rsa4096PrivateKey(RsaPrivateKey):
         super().__init__(private_key)
 
     @staticmethod
-    #override
+    # override
     def _PublicKey() -> PublicKey:
         return Rsa4096PublicKey
 
     @classmethod
-    #override
+    # override
     def _signature_size(cls) -> int:
         return 0x200
+
 
 rsa4096_key_type = KeyType("rsa4096", Rsa4096PublicKey, Rsa4096PrivateKey)
 

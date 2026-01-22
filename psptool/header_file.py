@@ -92,8 +92,8 @@ class HeaderFile(File):
         if self.encrypted:
             self.iv = self.header[0x20:0x30]
             self.key = self.header[0x80:0x90]
-            assert(self.iv != (b'\x00' * 16))
-            assert(self.key != (b'\x00' * 16))
+            assert (self.iv != (b'\x00' * 16))
+            assert (self.key != (b'\x00' * 16))
 
         assert 0 < self.rom_size <= self.buffer_size
         self.buffer_size = self.rom_size
@@ -169,7 +169,7 @@ class HeaderFile(File):
         if self.compressed:
             try:
                 return zlib_decompress(output[:self.zlib_size])
-            except:
+            except Exception:
                 self.psptool.ph.print_warning(f"ZLIB decompression failed on file {self.get_readable_type()}")
         return output
 
@@ -186,7 +186,7 @@ class HeaderFile(File):
             return self.body.get_bytes()
         else:
             unwrapped_ikek = self.get_unwrapped_ikek()
-            assert(unwrapped_ikek != None)
+            assert (unwrapped_ikek is not None)
             return decrypt(self.body.get_bytes(), self.key, unwrapped_ikek, self.iv)
 
     def get_unwrapped_ikek(self) -> bytes:
@@ -209,6 +209,6 @@ class HeaderFile(File):
         m = md5()
         try:
             m.update(self.body.get_bytes())
-        except:
+        except Exception:
             self.psptool.ph.print_warning(f"Get bytes failed at file: 0x{self.get_address():x} type: {self.get_readable_type()} size: 0x{self.buffer_size:x}")
         return m.hexdigest()

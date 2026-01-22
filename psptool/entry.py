@@ -99,7 +99,7 @@ class DirectoryEntry(NestedBuffer):
 
     @instance.setter
     def instance(self, value):
-       self.flags = self.flags | ((value & 0xF) << 3)
+        self.flags = self.flags | ((value & 0xF) << 3)
 
     @property
     def size(self):
@@ -132,6 +132,7 @@ class DirectoryEntry(NestedBuffer):
     @property
     def address_mode(self):
         return (self.rsv0 >> 30) & 3
+
 
 class BiosDirectoryEntry(DirectoryEntry):
     ENTRY_SIZE = 4 * 6
@@ -169,7 +170,7 @@ class BiosDirectoryEntry(DirectoryEntry):
 
     @subprogram.setter
     def subprogram(self, value):
-       self.flags = self.flags | ((value & 0x7) << 8)
+        self.flags = self.flags | ((value & 0x7) << 8)
 
     @property
     def instance(self):
@@ -177,4 +178,4 @@ class BiosDirectoryEntry(DirectoryEntry):
 
     @instance.setter
     def instance(self, value):
-       self.flags = self.flags | ((value & 0xF) << 4)
+        self.flags = self.flags | ((value & 0xF) << 4)

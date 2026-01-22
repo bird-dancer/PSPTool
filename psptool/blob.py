@@ -30,6 +30,7 @@ class Blob(NestedBuffer):
     _FIRMWARE_ENTRY_MAGIC = b'\xAA\x55\xAA\x55'
     # All structures per Rom must be in 16MB windows
     _MAX_PAGE_SIZE = 16 * 1024 * 1024
+
     class NoFirmwareEntryTableError(Exception):
         pass
 

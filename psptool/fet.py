@@ -53,8 +53,8 @@ class Fet(NestedBuffer):
         end_sequence = 4 * b'\xff\xff\xff\xff'
 
         while self.rom[
-              (fet_offset + size)
-              :(fet_offset + size + len(end_sequence))
+              (fet_offset + size):
+              (fet_offset + size + len(end_sequence))
               ] != end_sequence:
             size += step_size
 
@@ -78,7 +78,7 @@ class Fet(NestedBuffer):
 
             try:
                 dir_magic = self.rom[rom_addr:rom_addr + 4]
-            except AssertionError as e:
+            except AssertionError:
                 self.psptool.ph.print_warning(f"FET entry 0x{rom_addr:x} not found or invalid, skipping ...")
                 continue
             if dir_magic == b'2PSP' or dir_magic == b'2BHD':
@@ -104,7 +104,7 @@ class Fet(NestedBuffer):
 
         # Combo dir entries seem to begin at offset 0x20, make sure we don't
         # miss directories that don't adhere to that rule
-        assert(combo_dir[0x10:0x20] == (b'\x00' * 16))
+        assert (combo_dir[0x10:0x20] == (b'\x00' * 16))
 
         for i in range(2, no_of_entries+2):
             entry = combo_dir[i * 16 + 0x8: i * 16 + 0xc]

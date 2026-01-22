@@ -120,7 +120,7 @@ class SignedEntity:
         # this resigns self (multiple times!)
         for pk in self.certifying_keys:
             if pk in self.contained_keys:
-                continue # TODO hotfix
+                continue        # TODO hotfix
             pk.replace_and_resign(privkeys, recursive=recursive)
 
 
@@ -186,25 +186,26 @@ class PublicKeyEntity:
 
     def get_certifying_ids(self):
         return set(entity.certifying_id
-            for entity in self.wrapping_entities
-        )
+                   for entity in self.wrapping_entities
+                   )
 
     def get_certifying_keys(self):
-        return set(key
+        return set(
+            key
             for entity in self.wrapping_entities
-                for key in entity.certifying_keys
-        )
+            for key in entity.certifying_keys
+            )
 
     def get_certified_keys(self):
         return set(key
-            for entity in self.certified_entities
-                for key in entity.contained_keys
-        )
+                   for entity in self.certified_entities
+                   for key in entity.contained_keys
+                   )
 
     def _make_public_key(self) -> PublicKey:
         try:
             return self.key_type.make_public_key(self._crypto_material.get_bytes())
-        except:
+        except Exception:
             raise Exception(f'Cannot create crypto key for {self}.')
 
     def get_public_key(self) -> PublicKey:
@@ -419,9 +420,9 @@ class CertificateTree:
         return unique_keys
 
     def _print_key_tree_line(self, keys, indent):
-        keys=list(keys)
+        keys = list(keys)
         print(indent + f' +-{keys[0]}')
-        keys=keys[1:]
+        keys = keys[1:]
         for key in keys:
             print(indent + f' | {key}')
 
@@ -439,10 +440,10 @@ class CertificateTree:
                         seen_addresses.update(set(map(lambda k: k.get_address(), keys)))
                         self._print_key_tree_line(keys, indent)
                         seen_addresses.update(self.print_key_tree(key, indent+' |', stack+[key]))
-            #print("Seen:")
-            #print(', '.join(map(hex,seen_addresses)))
-            #print("Not seen:")
-            #print(', '.join(map(hex,set(self.pubkeys_address) - seen_addresses)))
+            # print("Seen:")
+            # print(', '.join(map(hex,seen_addresses)))
+            # print("Not seen:")
+            # print(', '.join(map(hex,set(self.pubkeys_address) - seen_addresses)))
             assert seen_addresses == set(self.pubkeys_address.keys())
         else:
             for signed_entity in root.certified_entities:

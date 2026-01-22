@@ -182,9 +182,9 @@ def main():
 
         # Option 3) Multiple files should be extracted
         if args.file_index is None:
-            if args.directory_index is not None: # Option 3a) All files from a given directory_index
+            if args.directory_index is not None:  # Option 3a) All files from a given directory_index
                 directories = [psp.blob.roms[args.rom_index].directories[args.directory_index]]
-            else: # Option 3b) All files from all directories from the given ROM (default: 0)
+            else:  # Option 3b) All files from all directories from the given ROM (default: 0)
                 directories = psp.blob.roms[args.rom_index].directories
 
             if args.no_duplicates is False:

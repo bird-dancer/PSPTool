@@ -45,7 +45,7 @@ class KeyStoreFile(HeaderFile):
         signature_size = self.header.signature_size
         assert signature_size in {0x100, 0x200}
         self.signature = Signature(self, signature_size, signature_start)
-        #self.signature = ReversedSignature(self, signature_size, signature_start)
+        # self.signature = ReversedSignature(self, signature_size, signature_start)
 
     def get_signed_bytes(self):
         return self.header.get_bytes() + self.key_store.get_bytes()
@@ -178,7 +178,7 @@ class KeyStore(NestedBuffer):
     @property
     def unknown_flag(self) -> bool:
         value = int.from_bytes(self._unknown_flag.get_bytes(), 'little')
-        assert value in {0,1}
+        assert value in {0, 1}
         return value == 1
 
 
@@ -237,7 +237,7 @@ class KeyStoreKey(NestedBuffer):
     @property
     def unknown_flag(self) -> bool:
         value = int.from_bytes(self._unknown_flag.get_bytes(), 'little')
-        assert value in {0,1}
+        assert value in {0, 1}
         return value == 1
 
     @property

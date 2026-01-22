@@ -59,5 +59,4 @@ class NonUniquePublicKeyEntity(Exception):
 
     def __str__(self):
         start = self.existing.key_id.get_address()
-        return f'There was anlready a PublicKeyEntity with key_id at {hex(start)} (existing={self.existing}, new={self.new})!'
-
+        return f'There was already a PublicKeyEntity with key_id at {hex(start)} (existing={self.existing}, new={self.new})!'
