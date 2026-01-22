@@ -44,7 +44,7 @@ class PSPTool:
     def __init__(self, rom_bytes, verbose=False, filename=None):
         self.filename = filename
         self.ph = PrintHelper(verbose)
-        
+
         self.directories_by_offset: Dict[int, 'Directory'] = {}
         self.files_by_offset: Dict[int, 'File'] = {}
 
@@ -131,14 +131,14 @@ class PSPTool:
             if issubclass(type(file), HeaderFile):
                 if file.has_sha256_checksum:
                     if file.verify_sha256():
-                        info.append(f'sha256_ok')
+                        info.append('sha256_ok')
                     else:
-                        info.append(f'sha256_inconsistent')
+                        info.append('sha256_inconsistent')
                 elif file.has_sha384_checksum:
                     if file.verify_sha384():
-                        info.append(f'sha384_ok')
+                        info.append('sha384_ok')
                     else:
-                        info.append(f'sha384_inconsistent')
+                        info.append('sha384_inconsistent')
                 if file.inline_keys:
                     inline_keys = ', '.join(map(lambda k: k.get_readable_magic(), file.inline_keys))
                     info.append(f'inline_keys({inline_keys})')

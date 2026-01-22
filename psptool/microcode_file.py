@@ -45,7 +45,7 @@ class MicrocodeFile(BiosFile):
             return self.header.get_readable_version()
 
         return f'{hex(self.patch_level)}'
-    
+
     def get_readable_magic(self):
         if self.header is not None:
             return self.header.get_readable_magic()

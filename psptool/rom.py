@@ -51,6 +51,5 @@ class Rom(NestedBuffer):
         else:
             return 'AGESA_UNKNOWN'
 
-
     def __repr__(self):
         return f'Rom({self.agesa_version=})'

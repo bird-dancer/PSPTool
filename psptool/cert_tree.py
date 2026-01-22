@@ -103,11 +103,11 @@ class SignedEntity:
         if self.file.has_sha256_checksum:
             print(f'    Checking sha256 checksum of {self.file}')
             if self.file.verify_sha256(print_warning=False):
-                print(f'        sha256 still valid!')
+                print('        sha256 still valid!')
             else:
-                print(f'        Need to rehash')
+                print('        Need to rehash')
                 self.file.update_sha256()
-                print(f'        Done')
+                print('        Done')
         assert self.signature.buffer_size == privkey.signature_size, \
             f"{self.signature.buffer_size=}, {privkey.signature_size=}"
         signature = privkey.sign_blob(self.file.get_signed_bytes())
