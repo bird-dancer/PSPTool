@@ -1,4 +1,4 @@
-name: Post metrics
+name: Post Metrics
 
 on:
   workflow_run:
@@ -11,7 +11,7 @@ jobs:
     runs-on:
       ubuntu-latest
     if: >
-        github.event.workflow_run.event == 'pull_request' &&
+        github.event.workflow_run.event == 'pull_request_target' &&
         github.event.workflow_run.conclusion == 'success'
     permissions:
       pull-requests: write
@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Download metrics
         uses: actions/download-artifact@v6
-        width:
+        with:
           name: metrics-data
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
