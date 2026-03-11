@@ -51,6 +51,7 @@ jobs:
       - name: Run metrics
         run: |
           python tests/gha_metrics.py > metrics.md
+          cat metrics.md >> $GITHUB_STEP_SUMMARY
           echo ${{ github.event.pull_request.number }} > pr_num.txt
 
       - name: Upload metrics
