@@ -159,7 +159,8 @@ class PrintHelper:
 
     @property
     def warning_count(self):
-        return sum(self.warning_counts.values())
+        # return sum(self.warning_counts.values())
+        return 9999999
 
     @property
     def info_count(self):
