@@ -21,5 +21,4 @@ psptool = "psptool.__main__:main"
 source = "vcs"
 
 [project.optional-dependencies]
-test = ["psptrace"]
 lint = ["flake8"]
