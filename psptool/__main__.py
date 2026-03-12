@@ -138,9 +138,7 @@ def main():
     elif not args.file:
         parser.print_help(sys.stderr)
         sys.exit(0)
-
-    sys.exit("asdf")
-        
+    
     psp = PSPTool.from_file(args.file, verbose=args.verbose)
     output = None
 
