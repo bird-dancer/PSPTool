@@ -19,3 +19,7 @@ psptool = "psptool.__main__:main"
 
 [tool.hatch.version]
 source = "vcs"
+
+[project.optional-dependencies]
+test = ["psptrace"]
+lint = ["flake8"]
