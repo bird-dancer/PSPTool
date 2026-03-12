@@ -2,7 +2,7 @@ name: Post Metrics
 
 on:
   workflow_run:
-    workflows: ["Create Metrics"]
+    workflows: ["Python tests"]
     types:
       - completed
 

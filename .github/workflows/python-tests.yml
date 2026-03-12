@@ -64,3 +64,18 @@ jobs:
       - name: Test with unittest
         run: |
           python -m unittest discover -s tests -v
+
+      - name: Create Metrics
+        if: matrix.python-version == '3.14' && github.event_name == 'pull_request_target'
+        run: |
+          python tests/gha_metrics.py > metrics.md
+          cat metrics.md >> $GITHUB_STEP_SUMMARY
+          echo ${{ github.event.pull_request.number }} > pr_num.txt
+
+      - name: Upload metrics
+        uses: actions/upload-artifact@v7
+        with:
+          name: metrics-data
+          path: |
+            metrics.md
+            pr_num.txt
