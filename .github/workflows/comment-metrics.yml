@@ -29,15 +29,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
-             PR_NUMBER=$(cat pr_num.txt)
+             PR_NUMBER=${{ github.event.pull_request.number }}
              MARKER="<!-- PSPTOOL-METRICS-MARKER -->"
-             # Check if a comment with our marker already exists
              COMMENT_ID=$(gh api "repos/$GH_REPO/issues/$PR_NUMBER/comments" --jq ".[] | select(.body | contains(\"$MARKER\")) | .id" | head -n 1)
 
              if [ -n "$COMMENT_ID" ]; then
-               echo "Updating existing comment $COMMENT_ID"
                gh api -X PATCH "repos/$GH_REPO/issues/comments/$COMMENT_ID" --field body=@metrics.md
              else
-               echo "Creating new comment"
                gh pr comment "$PR_NUMBER" --body-file metrics.md
              fi
