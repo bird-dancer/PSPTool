@@ -29,4 +29,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh pr comment "$(cat pr_num.txt)" --body-file metrics.md
+             PR_NUM="$(cat pr_num.txt)"
+             gh pr comment $PR_NUM --body-file metrics.md
+             MARKER="<!-- PSPTOOL-METRICS-MARKER -->"
+             
+             COMMENT_ID=$(gh pr view "$PR_NUM" --json comments \
+               --template "{{range .comments}}{{if contains .body\"$MARKER\"}}{{.id}}{{\"\n\"}}{{end}}{{end}}"\
+               | head -n 1)
+             if [ -n "$COMMENT_ID" ]; then
+               echo "Updating existing comment $COMMENT_ID"
+               gh api -X PATCH "repos/$GH_REPO/issues/comments/$COMMENT_ID" -f body="$(cat metrics.md)"
+             else
+               echo "Creating new comment"
+               gh pr comment "$PR_NUM" --body-file metrics.md
+             fi
