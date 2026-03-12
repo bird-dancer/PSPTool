@@ -1,0 +1,40 @@
+name: Post Metrics
+
+on:
+  workflow_run:
+    workflows: ["Python tests"]
+    types:
+      - completed
+
+jobs:
+  post-comment:
+    runs-on:
+      ubuntu-latest
+    if: >
+        github.event.workflow_run.event == 'pull_request_target' &&
+        github.event.workflow_run.conclusion == 'success'
+    permissions:
+      pull-requests: write
+      actions: read
+    steps:
+      - name: Download metrics
+        uses: actions/download-artifact@v8
+        with:
+          name: metrics-data
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Post comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+             PR_NUMBER=${{ github.event.workflow_run.pull_requests[0].number }}
+             MARKER="<!-- PSPTOOL-METRICS-MARKER -->"
+             COMMENT_ID=$(gh api "repos/$GH_REPO/issues/$PR_NUMBER/comments" --jq ".[] | select(.body | contains(\"$MARKER\")) | .id" | head -n 1)
+
+             if [ -n "$COMMENT_ID" ]; then
+               gh api -X PATCH "repos/$GH_REPO/issues/comments/$COMMENT_ID" --field body=@metrics.md
+             else
+               gh pr comment "$PR_NUMBER" --body-file metrics.md
+             fi
