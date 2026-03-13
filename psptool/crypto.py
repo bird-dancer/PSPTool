@@ -20,7 +20,13 @@ from os import listdir, mkdir, path
 from abc import ABC, abstractmethod
 
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives.serialization import load_pem_private_key, Encoding, PrivateFormat, BestAvailableEncryption, NoEncryption
+from cryptography.hazmat.primitives.serialization import (
+    load_pem_private_key,
+    Encoding,
+    PrivateFormat,
+    BestAvailableEncryption,
+    NoEncryption,
+)
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
 from cryptography.exceptions import InvalidSignature
@@ -30,7 +36,6 @@ from .utils import NestedBuffer
 
 # Abstract classes
 class WithSignatureSize(ABC):
-
     # abstract static property
     def __init_subclass__(cls):
         cls.signature_size = cls._signature_size()
@@ -42,7 +47,6 @@ class WithSignatureSize(ABC):
 
 
 class PublicKey(WithSignatureSize):
-
     # abstract static property
     def __init_subclass__(cls):
         super().__init_subclass__()
@@ -64,7 +68,6 @@ class PublicKey(WithSignatureSize):
 
 
 class PrivateKey(WithSignatureSize):
-
     # abstract static property
     def __init_subclass__(cls):
         super().__init_subclass__()
@@ -102,7 +105,6 @@ class PrivateKey(WithSignatureSize):
 
 
 class KeyType:
-
     _key_types = dict()
 
     @staticmethod
@@ -148,7 +150,6 @@ def create_parent_dir(filestub):
 
 
 class PrivateKeyDict:
-
     def __init__(self, keys=dict()):
         self.keys = keys
 
@@ -159,8 +160,8 @@ class PrivateKeyDict:
 
     def save_to_files(self, filestub: str, password: str = None):
         create_parent_dir(filestub)
-        for (name, key) in self.keys.items():
-            key.save_to_file(filestub + '.' + name, password=password)
+        for name, key in self.keys.items():
+            key.save_to_file(filestub + "." + name, password=password)
 
     @staticmethod
     def read_from_files(filestub: str, password: str = None):
@@ -170,8 +171,8 @@ class PrivateKeyDict:
         keys = dict()
         for filename in listdir(dirname):
             if filename.startswith(filestub):
-                name = filename.rsplit('.')[-1]
-                keys[name] = KeyType.from_name(name).load_private_key(dirname + '/' + filename, password=password)
+                name = filename.rsplit(".")[-1]
+                keys[name] = KeyType.from_name(name).load_private_key(dirname + "/" + filename, password=password)
         return PrivateKeyDict(keys)
 
 
@@ -179,7 +180,6 @@ class PrivateKeyDict:
 
 
 class RsaKey(WithSignatureSize):
-
     # abstract static property
     def __init_subclass__(cls):
         super().__init_subclass__()
@@ -193,142 +193,135 @@ class RsaKey(WithSignatureSize):
                 cls.hash_algorithm = hashes.SHA384()
                 cls.salt_length = 48
             else:
-                raise Exception(f'Unknown rsa key size: {cls.key_bits} bits!')
+                raise Exception(f"Unknown rsa key size: {cls.key_bits} bits!")
 
     @classmethod
     def padding(cls):
-        return padding.PSS(
-            mgf=padding.MGF1(cls.hash_algorithm),
-            salt_length=cls.salt_length
-        )
+        return padding.PSS(mgf=padding.MGF1(cls.hash_algorithm), salt_length=cls.salt_length)
 
 
 class RsaPublicKey(PublicKey, RsaKey):
-
     def __init__(self, public_key):
         super().__init__()
-        assert public_key.key_size == self.key_bits, f'Key has the wrong size: \
-                expected {self.key_bits} but got {public_key.key_size}!'
+        assert public_key.key_size == self.key_bits, (
+            f"Key has the wrong size: \
+                expected {self.key_bits} but got {public_key.key_size}!"
+        )
         self._public_key = public_key
 
     # to/from crypto material
     @classmethod
-    #override
+    # override
     def from_crypto_material(cls, crypto_material: bytes) -> PublicKey:
         if len(crypto_material) == 2 * cls.signature_size:
-            pubexp = int.from_bytes(crypto_material[:cls.signature_size], 'little')
-            assert pubexp == 65537, f'The public exponent should always be 65537 \
-                    (0x10001) not {pubexp} (0x{pubexp:x})!'
-            modulus = int.from_bytes(crypto_material[cls.signature_size:], 'little')
+            pubexp = int.from_bytes(crypto_material[: cls.signature_size], "little")
+            assert pubexp == 65537, (
+                f"The public exponent should always be 65537 \
+                    (0x10001) not {pubexp} (0x{pubexp:x})!"
+            )
+            modulus = int.from_bytes(crypto_material[cls.signature_size :], "little")
         elif len(crypto_material) == cls.signature_size:
             pubexp = 0x10001
-            modulus = int.from_bytes(crypto_material, 'little')
+            modulus = int.from_bytes(crypto_material, "little")
         else:
-            raise Exception(f'Crypto material has unknown size: 0x{len(crypto_material):x}!')
+            raise Exception(f"Crypto material has unknown size: 0x{len(crypto_material):x}!")
 
         return cls(rsa.RSAPublicNumbers(pubexp, modulus).public_key())
 
-    #override
+    # override
     def get_crypto_material(self, size: int) -> bytes:
         numbers = self._public_key.public_numbers()
-        modulus = numbers.n.to_bytes(self.signature_size, 'little')
+        modulus = numbers.n.to_bytes(self.signature_size, "little")
 
         if size == self.signature_size:
             return modulus
         elif size == 2 * self.signature_size:
-            pubexp = numbers.e.to_bytes(self.signature_size, 'little')
+            pubexp = numbers.e.to_bytes(self.signature_size, "little")
             return pubexp + modulus
         else:
-            raise Exception(f'Unknown crypto_material size: 0x{size:x} \
-                    (expected 0x{self.signature_size:x} or 0x{2*self.signature_size:x})!')
+            raise Exception(
+                f"Unknown crypto_material size: 0x{size:x} \
+                    (expected 0x{self.signature_size:x} or 0x{2 * self.signature_size:x})!"
+            )
 
     # core functionality
-    #override
+    # override
     def verify_blob(self, blob: bytes, signature: bytes) -> bool:
         pass
         try:
-            self._public_key.verify(
-                signature,
-                blob,
-                self.padding(),
-                self.hash_algorithm
-            )
+            self._public_key.verify(signature, blob, self.padding(), self.hash_algorithm)
         except InvalidSignature:
             return False
         return True
 
 
 class RsaPrivateKey(PrivateKey, RsaKey):
-
     def __init__(self, private_key):
         super().__init__()
-        assert private_key.key_size == self.key_bits, f'Key has the wrong size: \
-                expected {self.key_bits} but got {private_key.key_size}!'
+        assert private_key.key_size == self.key_bits, (
+            f"Key has the wrong size: \
+                expected {self.key_bits} but got {private_key.key_size}!"
+        )
         self._private_key = private_key
 
     # generate out of thin air
     @classmethod
-    #override
+    # override
     def generate_new(cls) -> PrivateKey:
-        return cls(rsa.generate_private_key(public_exponent=0x10001,key_size=cls.key_bits))
+        return cls(rsa.generate_private_key(public_exponent=0x10001, key_size=cls.key_bits))
 
     # to/from file
     @classmethod
-    #override
+    # override
     def load_from_file(cls, filename: str, password: str = None) -> PrivateKey:
         if password:
             password = password.encode()
-        with open(filename, 'rb') as f:
+        with open(filename, "rb") as f:
             return cls(load_pem_private_key(f.read(), password=password))
 
-    #override
+    # override
     def save_to_file(self, filename: str, password: str = None):
         encryption = NoEncryption()
         if password:
-            encryption=BestAvailableEncryption(password.encode())
-        with open(filename, 'wb+') as f:
-            f.write(self._private_key.private_bytes(
-                encoding=Encoding.PEM,
-                format=PrivateFormat.PKCS8,
-                encryption_algorithm=encryption
-            ))
+            encryption = BestAvailableEncryption(password.encode())
+        with open(filename, "wb+") as f:
+            f.write(
+                self._private_key.private_bytes(
+                    encoding=Encoding.PEM, format=PrivateFormat.PKCS8, encryption_algorithm=encryption
+                )
+            )
 
     # core functionality
-    #override
+    # override
     def get_public_key(self) -> PublicKey:
         return self.PublicKey(self._private_key.public_key())
 
-    #override
+    # override
     def sign_blob(self, blob: bytes) -> bytes:
-        return self._private_key.sign(
-            blob,
-            self.padding(),
-            self.hash_algorithm
-        )
+        return self._private_key.sign(blob, self.padding(), self.hash_algorithm)
 
 
 class Rsa2048PublicKey(RsaPublicKey):
-
     def __init__(self, public_key):
         super().__init__(public_key)
 
     @classmethod
-    #override
+    # override
     def _signature_size(cls) -> int:
         return 0x100
 
-class Rsa2048PrivateKey(RsaPrivateKey):
 
+class Rsa2048PrivateKey(RsaPrivateKey):
     def __init__(self, private_key):
         super().__init__(private_key)
 
     @staticmethod
-    #override
+    # override
     def _PublicKey() -> PublicKey:
         return Rsa2048PublicKey
 
     @classmethod
-    #override
+    # override
     def _signature_size(cls) -> int:
         return 0x100
 
@@ -337,44 +330,43 @@ rsa2048_key_type = KeyType("rsa2048", Rsa2048PublicKey, Rsa2048PrivateKey)
 
 
 class Rsa4096PublicKey(RsaPublicKey):
-
     def __init__(self, public_key):
         super().__init__(public_key)
 
     @classmethod
-    #override
+    # override
     def _signature_size(cls) -> int:
         return 0x200
 
-class Rsa4096PrivateKey(RsaPrivateKey):
 
+class Rsa4096PrivateKey(RsaPrivateKey):
     def __init__(self, private_key):
         super().__init__(private_key)
 
     @staticmethod
-    #override
+    # override
     def _PublicKey() -> PublicKey:
         return Rsa4096PublicKey
 
     @classmethod
-    #override
+    # override
     def _signature_size(cls) -> int:
         return 0x200
+
 
 rsa4096_key_type = KeyType("rsa4096", Rsa4096PublicKey, Rsa4096PrivateKey)
 
 
 class KeyId(NestedBuffer):
-
     @property
     def magic(self) -> str:
-        return hexlify(self.get_bytes(0, 2)).upper().decode('ascii')
+        return hexlify(self.get_bytes(0, 2)).upper().decode("ascii")
 
     def as_string(self) -> str:
-        return hexlify(self.get_bytes()).upper().decode('ascii')
+        return hexlify(self.get_bytes()).upper().decode("ascii")
 
     def __repr__(self):
-        return f'KeyId({self.as_string()})'
+        return f"KeyId({self.as_string()})"
 
 
 class Signature(NestedBuffer):
@@ -389,7 +381,7 @@ class ReversedSignature(Signature):
             new_slice = self._offset_slice(item)
             return self.parent_buffer[new_slice]
         else:
-            assert (isinstance(item, int))
+            assert isinstance(item, int)
             assert item >= 0, "Negative index not supported for ReversedSignature"
             return self.parent_buffer[self.buffer_offset + self.buffer_size - item - 1]
 
@@ -398,12 +390,12 @@ class ReversedSignature(Signature):
             new_slice = self._offset_slice(key)
             self.parent_buffer[new_slice] = value
         else:
-            assert (isinstance(key, int))
+            assert isinstance(key, int)
             self.parent_buffer[self.buffer_offset + self.buffer_size - key - 1] = value
 
     def _offset_slice(self, item):
         return slice(
             self.buffer_offset + self.buffer_size - (item.start or 0) - 1,
             self.buffer_offset + self.buffer_size - (item.stop or self.buffer_size) - 1,
-            -1
+            -1,
         )

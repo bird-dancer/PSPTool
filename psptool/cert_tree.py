@@ -47,7 +47,7 @@ class SignedEntity:
         return range(start, start + self.get_length())
 
     def __repr__(self) -> str:
-        return f'SignedEntity(@{self.get_address():x}:{self.get_length():x})'
+        return f"SignedEntity(@{self.get_address():x}:{self.get_length():x})"
 
     @staticmethod
     def _from_pubkey_file(pkf, psptool):
@@ -99,28 +99,31 @@ class SignedEntity:
 
     # resigns this file only
     def resign_only(self, privkey: PrivateKey):
-        print(f'Resigning {self} ({self.file})')
+        print(f"Resigning {self} ({self.file})")
         if self.file.has_sha256_checksum:
-            print(f'    Checking sha256 checksum of {self.file}')
+            print(f"    Checking sha256 checksum of {self.file}")
             if self.file.verify_sha256(print_warning=False):
-                print(f'        sha256 still valid!')
+                print(f"        sha256 still valid!")
             else:
-                print(f'        Need to rehash')
+                print(f"        Need to rehash")
                 self.file.update_sha256()
-                print(f'        Done')
-        assert self.signature.buffer_size == privkey.signature_size, \
+                print(f"        Done")
+        assert self.signature.buffer_size == privkey.signature_size, (
             f"{self.signature.buffer_size=}, {privkey.signature_size=}"
+        )
         signature = privkey.sign_blob(self.file.get_signed_bytes())
-        assert len(signature) == self.signature.buffer_size, f'Could not resign {self} with {privkey}: ' \
-                                                             f'The new signature has the wrong length ' \
-                                                             f'{len(signature)} != {self.signature.buffer_size}'
+        assert len(signature) == self.signature.buffer_size, (
+            f"Could not resign {self} with {privkey}: "
+            f"The new signature has the wrong length "
+            f"{len(signature)} != {self.signature.buffer_size}"
+        )
         self.signature.set_bytes(0, len(signature), signature)
 
     def resign_and_replace(self, privkeys: PrivateKeyDict = None, recursive: bool = False):
         # this resigns self (multiple times!)
         for pk in self.certifying_keys:
             if pk in self.contained_keys:
-                continue # TODO hotfix
+                continue  # TODO hotfix
             pk.replace_and_resign(privkeys, recursive=recursive)
 
 
@@ -145,7 +148,7 @@ class PublicKeyEntity:
         return self.key_id.as_string()[:4]
 
     def __repr__(self) -> str:
-        return f'PubkeyEntity({self.get_magic()}, @{self.get_address():x}, {self.key_type.signature_size=})'
+        return f"PubkeyEntity({self.get_magic()}, @{self.get_address():x}, {self.key_type.signature_size=})"
 
     def is_same(self, other) -> bool:
         if self.key_id[:] != other.key_id[:]:
@@ -161,11 +164,11 @@ class PublicKeyEntity:
     @classmethod
     def _from_pubkey_file(cls, pkf: PubkeyFile, psptool):
         if pkf.modulus_size == 0x100:
-            key_type = KeyType.from_name('rsa2048')
+            key_type = KeyType.from_name("rsa2048")
         elif pkf.modulus_size == 0x200:
-            key_type = KeyType.from_name('rsa4096')
+            key_type = KeyType.from_name("rsa4096")
         else:
-            raise Exception(f'Unknown PubkeyFile modulus size ({hex(pkf.modulus_size)}) for {pkf}')
+            raise Exception(f"Unknown PubkeyFile modulus size ({hex(pkf.modulus_size)}) for {pkf}")
 
         return PublicKeyEntity(key_type, pkf.key_id, pkf.crypto_material, psptool)
 
@@ -173,11 +176,11 @@ class PublicKeyEntity:
     def _from_key_store_key(cls, ksk: KeyStoreKey, psptool):
 
         if ksk.key_size == 2048:
-            key_type = KeyType.from_name('rsa2048')
+            key_type = KeyType.from_name("rsa2048")
         elif ksk.key_size == 4096:
-            key_type = KeyType.from_name('rsa4096')
+            key_type = KeyType.from_name("rsa4096")
         else:
-            raise Exception(f'Unknown key_size ({ksk.key_size:x}) for {ksk}')
+            raise Exception(f"Unknown key_size ({ksk.key_size:x}) for {ksk}")
 
         return PublicKeyEntity(key_type, ksk.key_id, ksk.crypto_material, psptool)
 
@@ -185,27 +188,19 @@ class PublicKeyEntity:
         return not self.get_certifying_keys() or self in self.get_certifying_keys()
 
     def get_certifying_ids(self):
-        return set(entity.certifying_id
-            for entity in self.wrapping_entities
-        )
+        return set(entity.certifying_id for entity in self.wrapping_entities)
 
     def get_certifying_keys(self):
-        return set(key
-            for entity in self.wrapping_entities
-                for key in entity.certifying_keys
-        )
+        return set(key for entity in self.wrapping_entities for key in entity.certifying_keys)
 
     def get_certified_keys(self):
-        return set(key
-            for entity in self.certified_entities
-                for key in entity.contained_keys
-        )
+        return set(key for entity in self.certified_entities for key in entity.contained_keys)
 
     def _make_public_key(self) -> PublicKey:
         try:
             return self.key_type.make_public_key(self._crypto_material.get_bytes())
         except:
-            raise Exception(f'Cannot create crypto key for {self}.')
+            raise Exception(f"Cannot create crypto key for {self}.")
 
     def get_public_key(self) -> PublicKey:
         if not self._public_key:
@@ -213,12 +208,14 @@ class PublicKeyEntity:
         return self._public_key
 
     def replace_crypto_material(self, crypto_material: bytes):
-        assert len(crypto_material) == self._crypto_material.buffer_size, f'Crypto material has wrong size: {len(crypto_material)} != {self._crypto_material.buffer_size}'
+        assert len(crypto_material) == self._crypto_material.buffer_size, (
+            f"Crypto material has wrong size: {len(crypto_material)} != {self._crypto_material.buffer_size}"
+        )
         self._public_key = None
         self._crypto_material.set_bytes(0, len(crypto_material), crypto_material)
 
     def replace_only(self, pubkey: PublicKey):
-        print(f'Replacing {self}')
+        print(f"Replacing {self}")
         assert self.key_type.signature_size == pubkey.signature_size
         size = self._crypto_material.buffer_size
         self.replace_crypto_material(pubkey.get_crypto_material(size))
@@ -241,12 +238,12 @@ class PublicKeyEntity:
 
         # check crypto
         for se in self.certified_entities:
-            assert se.is_verified_by(self), f'Resigning {se} with {self} failed!'
+            assert se.is_verified_by(self), f"Resigning {se} with {self} failed!"
 
         # continue
         if recursive:
             if len(self.wrapping_entities) > 1:
-                self.psptool.ph.print_warning(f'Resigning could be in wrong order for {self.wrapping_entities}!')
+                self.psptool.ph.print_warning(f"Resigning could be in wrong order for {self.wrapping_entities}!")
 
             for se in self.wrapping_entities:
                 se.resign_and_replace(privkeys=privkeys, recursive=True)
@@ -288,7 +285,7 @@ class CertificateTree:
         self.signed_entities[cert_id].add(signed_entity)
 
         # update contained/wrapping edges
-        for (address, pubkey) in self.pubkeys_address.items():
+        for address, pubkey in self.pubkeys_address.items():
             if address in address_range:
                 signed_entity.contained_keys.add(pubkey)
                 pubkey.wrapping_entities.add(signed_entity)
@@ -323,7 +320,7 @@ class CertificateTree:
         # update contained/wrapping edges
         assert pubkey.wrapping_entities is None
         pubkey.wrapping_entities = set()
-        for (r, signed_entity) in self.signed_ranges.items():
+        for r, signed_entity in self.signed_ranges.items():
             if start_address in r:
                 pubkey.wrapping_entities.add(signed_entity)
                 signed_entity.contained_keys.add(pubkey)
@@ -419,30 +416,30 @@ class CertificateTree:
         return unique_keys
 
     def _print_key_tree_line(self, keys, indent):
-        keys=list(keys)
-        print(indent + f' +-{keys[0]}')
-        keys=keys[1:]
+        keys = list(keys)
+        print(indent + f" +-{keys[0]}")
+        keys = keys[1:]
         for key in keys:
-            print(indent + f' | {key}')
+            print(indent + f" | {key}")
 
     def _print_signed_entity_tree_line(self, signed_entity, verified, indent):
-        print(indent + f' +-{signed_entity} (verified={verified})')
+        print(indent + f" +-{signed_entity} (verified={verified})")
 
-    def print_key_tree(self, root=None, indent='', stack=list()):
+    def print_key_tree(self, root=None, indent="", stack=list()):
         seen_addresses = set()
         if not root:
-            print(indent + 'AMD')
+            print(indent + "AMD")
             for key_id in self.pubkeys.keys():
-                for (keys) in self.unique_pubkeys(key_id):
+                for keys in self.unique_pubkeys(key_id):
                     key = keys[0]
                     if key.is_root() and key not in stack:
                         seen_addresses.update(set(map(lambda k: k.get_address(), keys)))
                         self._print_key_tree_line(keys, indent)
-                        seen_addresses.update(self.print_key_tree(key, indent+' |', stack+[key]))
-            #print("Seen:")
-            #print(', '.join(map(hex,seen_addresses)))
-            #print("Not seen:")
-            #print(', '.join(map(hex,set(self.pubkeys_address) - seen_addresses)))
+                        seen_addresses.update(self.print_key_tree(key, indent + " |", stack + [key]))
+            # print("Seen:")
+            # print(', '.join(map(hex,seen_addresses)))
+            # print("Not seen:")
+            # print(', '.join(map(hex,set(self.pubkeys_address) - seen_addresses)))
             assert seen_addresses == set(self.pubkeys_address.keys())
         else:
             for signed_entity in root.certified_entities:
@@ -456,7 +453,7 @@ class CertificateTree:
                     key_id = key.key_id.as_string()
                     for keys in self.unique_pubkeys(key_id):
                         seen_addresses.update(set(map(lambda k: k.get_address(), keys)))
-                        self._print_key_tree_line(keys, indent + ' |')
-                    seen_addresses.update(self.print_key_tree(key, indent+' | |', stack+[key]))
+                        self._print_key_tree_line(keys, indent + " |")
+                    seen_addresses.update(self.print_key_tree(key, indent + " | |", stack + [key]))
 
         return seen_addresses

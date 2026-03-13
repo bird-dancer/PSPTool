@@ -32,12 +32,12 @@ if TYPE_CHECKING:
     from .entry import DirectoryEntry
 
 SECONDARY_DIRECTORY_ENTRY_TYPES = [0x40, 0x49, 0x70]
-TERTIARY_DIRECTORY_ENTRY_TYPES = [0x48, 0x4a]
+TERTIARY_DIRECTORY_ENTRY_TYPES = [0x48, 0x4A]
+
 
 class File(NestedBuffer):
-
     @classmethod
-    def create_file_if_not_exists(cls, directory: 'Directory', entry: 'DirectoryEntry'):
+    def create_file_if_not_exists(cls, directory: "Directory", entry: "DirectoryEntry"):
         # APOBs do not have location nor size, so can be easily mistaken as duplicated
         # in multi-ROM files. There should be only one APOB per BIOS directory anyways.
         if type(entry) == BiosDirectoryEntry and entry.type == 0x61:
@@ -57,190 +57,220 @@ class File(NestedBuffer):
 
     ENTRY_ALIGNMENT = 0x10
 
-    UNWRAPPED_IKEK_ZEN_PLUS = b'\x4c\x77\x63\x65\x32\xfe\x4c\x6f\xd6\xb9\xd6\xd7\xb5\x1e\xde\x59'
-    HASH_IKEK_ZEN_PLUS = b'\xe2\x84\xda\xe0\x6e\x58\x01\x04\xfa\x6e\x8e\x6b\x58\x68\x8a\x0c'
+    UNWRAPPED_IKEK_ZEN_PLUS = b"\x4c\x77\x63\x65\x32\xfe\x4c\x6f\xd6\xb9\xd6\xd7\xb5\x1e\xde\x59"
+    HASH_IKEK_ZEN_PLUS = b"\xe2\x84\xda\xe0\x6e\x58\x01\x04\xfa\x6e\x8e\x6b\x58\x68\x8a\x0c"
 
-    UNWRAPPED_IKEK_ZEN = b'\x49\x1e\x40\x1a\x40\x1e\xc1\xb2\x28\x46\x00\xf0\x99\xfd\xe8\x68'
-    HASH_IKEK_ZEN = b'\x47\x23\xa8\x52\x03\x38\xbd\x2e\xac\x5f\xae\x9c\x2c\xb5\x92\x5b'
+    UNWRAPPED_IKEK_ZEN = b"\x49\x1e\x40\x1a\x40\x1e\xc1\xb2\x28\x46\x00\xf0\x99\xfd\xe8\x68"
+    HASH_IKEK_ZEN = b"\x47\x23\xa8\x52\x03\x38\xbd\x2e\xac\x5f\xae\x9c\x2c\xb5\x92\x5b"
 
     DIRECTORY_ENTRY_TYPES = {
-        0x00: 'AMD_PUBLIC_KEY',
-        0x01: 'PSP_FW_BOOT_LOADER',
-        0x02: 'PSP_FW_TRUSTED_OS',
-        0x03: 'PSP_FW_RECOVERY_BOOT_LOADER',
-        0x04: 'PSP_NV_DATA',
-        0x05: 'BIOS_PUBLIC_KEY',
-        0x06: 'BIOS_RTM_FIRMWARE',
-        0x07: 'BIOS_RTM_SIGNATURE',
-        0x08: 'SMU_OFFCHIP_FW',
-        0x09: 'SEC_DBG_PUBLIC_KEY',
-        0x0A: 'OEM_PSP_FW_PUBLIC_KEY',
-        0x0B: 'SOFT_FUSE_CHAIN_01',
-        0x0C: 'PSP_BOOT_TIME_TRUSTLETS',
-        0x0D: 'PSP_BOOT_TIME_TRUSTLETS_KEY',
-        0x10: 'PSP_AGESA_RESUME_FW',
-        0x12: 'SMU_OFF_CHIP_FW_2',
-        0x13: 'DEBUG_UNLOCK',
-        0x15: 'TEE_IP_KEY_MGR_DRIVER',
-        0x1A: 'PSP_S3_NV_DATA_OR_SEV_DRIVER',
-        0x1B: 'TEE_BOOT_DRIVER',
-        0x1C: 'TEE_SOC_DRIVER',
-        0x1D: 'TEE_FBG_DRIVER',
-        0x1F: 'TEE_INTERFACE_DRIVER',
-        0x20: 'HARDWARE_IP_CONFIG',
-        0x21: 'WRAPPED_IKEK',
-        0x22: 'TOKEN_UNLOCK',
-        0x23: 'PSP_DIAG_BL',
-        0x24: 'SEC_GASKET',
-        0x25: 'MP2_FW',
-        0x26: 'MP2_FW_2',
-        0x27: 'USER_MODE_UNIT_TEST',
-        0x28: 'DRIVER_ENTRIES',
-        0x29: 'KVM_IMAGE',
-        0x2A: 'MP5_FW',
-        0x2B: 'EMBEDDED_FW_STRUCTURE',
-        0x2C: 'TEE_WRITE_ONCE_NVRAM',
-        0x2D: 'S0I3_DRIVER',
-        0x2E: 'PREMIUM_CHIPSET_MP0_DXIO_FW',
-        0x2F: 'PREMIUM_CHIPSET_MP1_FW',
-        0x30: 'ABL0',
-        0x31: 'ABL1',
-        0x32: 'ABL2',
-        0x33: 'ABL3',
-        0x34: 'ABL4',
-        0x35: 'ABL5',
-        0x36: 'ABL6',
-        0x37: 'ABL7',
-        0x38: 'SEV_DATA',
-        0x39: 'SEV_CODE',
-        0x3A: 'FW_PSP_WHITELIST',
-        0x3C: 'VBIOS_PRELOAD',
-        0x3D: 'WLAN_UMAC',
-        0x3E: 'WLAN_IMAC',
-        0x3F: 'WLAN_BT',
-        0x40: 'PSP_FW_L2_PTR',
-        0x41: 'FW_IMC',
-        0x42: 'FW_GEC_OR_DXIO_PHY_SRAM_FW',
-        0x43: 'DXIO_PHY_SRAM_FW_PUBKEY',
-        0x44: 'FW_XHCI',
-        0x45: 'TOS_SECURITY_POLICY',
-        0x46: 'ANOTHER_FET',
-        0x47: 'DRTM_TA',
-        0x48: 'PSP_FW_L2A_PTR',
-        0x49: 'BIOS_L2AB_PTR',
-        0x4a: 'PSP_FW_L2B_PTR',
-        0x4b: 'RESERVED',
-        0x4c: 'PREMIUM_CHIPSET_SEC_POLICY',
-        0x4d: 'PREMIUM_CHIPSET_DEBUG_UNLOCK',
-        0x4e: 'PMU_PUBKEY',
-        0x4f: 'UMC_FW',
-        0x50: 'BL_PUBLIC_KEY',
-        0x51: 'TOS_PUBLIC_KEY',
-        0x52: 'OEM_PSP_BL_USER_APP',
-        0x53: 'OEM_PSP_BL_USER_APP_KEY',
-        0x54: 'PSP_NVRAM',
-        0x55: 'BL_ROLLBACK_SPL',
-        0x56: 'TOS_ROLLBACK_SPL',
-        0x57: 'PSP_BL_CVIP_TABLE',
-        0x58: 'DMCU_ERAM',
-        0x59: 'DMCU_ISR',
-        0x5a: 'MSMU_BINARY_0',
-        0x5b: 'MSMU_BINARY_1',
-        0x5c: 'WMOS',
-        0x5d: 'MPIO_FW',
-        0x5e: 'DF_TOPOLOGY',
-        0x5f: 'FW_PSP_SMUSCS_OR_TPMLITE',
-        0x64: 'TEE_RAS_DRIVER',
-        0x65: 'TEE_RAS_TRUSTED_APP',
-        0x67: 'TEE_FHP_DRIVER_FW',
-        0x68: 'TEE_SPDM_DRIVER_FW',
-        0x69: 'TEE_DPE_DRIVER_FW',
-        0x6a: 'TEE_PRE_MEM_DRIVER_FW',
-        0x6b: 'TEE_MP_RAS_DRIVER_FW',
-        0x6c: 'TEE_POST_MEM_DRIVER_FW',
-        0x70: 'BIOS_L2_PTR',
-        0x71: 'PSP_DMCUB_CODE',
-        0x72: 'PSP_DMCUB_DATA',
-        0x73: 'PSP_FW_BOOT_LOADER',
-        0x74: 'PSP_PLATFORM_DRIVER',
-        0x75: 'FW_SOFT_FUSING_BINARY',
-        0x76: 'REGISTER_INIT_BIN',
-        0x80: 'OEM_SYS_TA',
-        0x81: 'OEM_SYS_TA_SIGNING_KEY',
-        0x82: 'IKEK_OEM',
-        0x84: 'TKEK_OEM',
-        0x85: 'AMF_FW1',
-        0x86: 'AMF_FW2',
-        0x87: 'MFD_MPM_FACTORY',
-        0x88: 'MFD_MPM_WLAN_FW',
-        0x89: 'MPM_DRIVER',
-        0x8A: 'USB4_PHY_FW',
-        0x8B: 'FIPS_CERTIFICATION_MODULE',
-        0x8C: 'MPDMA_TF_FW',
-        0x8D: 'IKEK_TA',
-        0x8E: 'SEC_FW_DATA_RECORDER',
-        0x8F: 'OFFCHIP_USB4_FW',
-        0x90: 'CCX_CORE_INIT_AND_PM',
-        0x91: 'GMI3_PHY_FW',
-        0x92: 'MPDMA_MPDACC_TIERED_MEMORY_PAGE_MIGRATION_FW',
-        0x93: 'PROM21_FW',
-        0x94: 'LSDMA_FW',
-        0x95: 'C20_PHY_FW',
-        0x96: 'NPU_FW',
-        0x97: 'AMD_SFFS_PUBKEY',
-        0x98: 'CPU_FEAT_CONFIG_TBL',
-        0x99: 'PMF_BINARY',
-        0x9A: 'REDUCED_MSMU_SIZE',
-        0x9B: 'GFX_IMU_LX7_CODE',
-        0x9C: 'GFX_IMU_LX7_DATA',
-        0x9D: 'FW_ROM_OR_FIPS_SRAM',
-        0x9E: 'SFDR_DATA',
-        0x9F: 'REG_ACCESS_WHITELIST',
-        0xA0: 'CPU_S3_IMAGE',
-        0xA2: 'UZSC_RESET_WORKAROUND',
-        0xA3: 'USB_NATIVE_DP',
-        0xA4: 'USB_TYPEC_DP',
-        0xA5: 'USB_SS_FW',
-        0xA6: 'USB4',
-        0xA7: 'OFFCHIP_XHCI_SATA_PCIE',
-        0xAA: 'ASP_LIBSEC',
-        0xAB: 'ART_FMC_IMG',
-        0xAC: 'ART_RUNTIME_FW',
-        0xAD: 'ART_KEY_DATABASE',
-        0xAE: 'SEC_ASP_LIBROM_OVERLAY_FW',
-        0xB0: 'MPM_CONTEXT',
+        0x00: "AMD_PUBLIC_KEY",
+        0x01: "PSP_FW_BOOT_LOADER",
+        0x02: "PSP_FW_TRUSTED_OS",
+        0x03: "PSP_FW_RECOVERY_BOOT_LOADER",
+        0x04: "PSP_NV_DATA",
+        0x05: "BIOS_PUBLIC_KEY",
+        0x06: "BIOS_RTM_FIRMWARE",
+        0x07: "BIOS_RTM_SIGNATURE",
+        0x08: "SMU_OFFCHIP_FW",
+        0x09: "SEC_DBG_PUBLIC_KEY",
+        0x0A: "OEM_PSP_FW_PUBLIC_KEY",
+        0x0B: "SOFT_FUSE_CHAIN_01",
+        0x0C: "PSP_BOOT_TIME_TRUSTLETS",
+        0x0D: "PSP_BOOT_TIME_TRUSTLETS_KEY",
+        0x10: "PSP_AGESA_RESUME_FW",
+        0x12: "SMU_OFF_CHIP_FW_2",
+        0x13: "DEBUG_UNLOCK",
+        0x15: "TEE_IP_KEY_MGR_DRIVER",
+        0x1A: "PSP_S3_NV_DATA_OR_SEV_DRIVER",
+        0x1B: "TEE_BOOT_DRIVER",
+        0x1C: "TEE_SOC_DRIVER",
+        0x1D: "TEE_FBG_DRIVER",
+        0x1F: "TEE_INTERFACE_DRIVER",
+        0x20: "HARDWARE_IP_CONFIG",
+        0x21: "WRAPPED_IKEK",
+        0x22: "TOKEN_UNLOCK",
+        0x23: "PSP_DIAG_BL",
+        0x24: "SEC_GASKET",
+        0x25: "MP2_FW",
+        0x26: "MP2_FW_2",
+        0x27: "USER_MODE_UNIT_TEST",
+        0x28: "DRIVER_ENTRIES",
+        0x29: "KVM_IMAGE",
+        0x2A: "MP5_FW",
+        0x2B: "EMBEDDED_FW_STRUCTURE",
+        0x2C: "TEE_WRITE_ONCE_NVRAM",
+        0x2D: "S0I3_DRIVER",
+        0x2E: "PREMIUM_CHIPSET_MP0_DXIO_FW",
+        0x2F: "PREMIUM_CHIPSET_MP1_FW",
+        0x30: "ABL0",
+        0x31: "ABL1",
+        0x32: "ABL2",
+        0x33: "ABL3",
+        0x34: "ABL4",
+        0x35: "ABL5",
+        0x36: "ABL6",
+        0x37: "ABL7",
+        0x38: "SEV_DATA",
+        0x39: "SEV_CODE",
+        0x3A: "FW_PSP_WHITELIST",
+        0x3C: "VBIOS_PRELOAD",
+        0x3D: "WLAN_UMAC",
+        0x3E: "WLAN_IMAC",
+        0x3F: "WLAN_BT",
+        0x40: "PSP_FW_L2_PTR",
+        0x41: "FW_IMC",
+        0x42: "FW_GEC_OR_DXIO_PHY_SRAM_FW",
+        0x43: "DXIO_PHY_SRAM_FW_PUBKEY",
+        0x44: "FW_XHCI",
+        0x45: "TOS_SECURITY_POLICY",
+        0x46: "ANOTHER_FET",
+        0x47: "DRTM_TA",
+        0x48: "PSP_FW_L2A_PTR",
+        0x49: "BIOS_L2AB_PTR",
+        0x4A: "PSP_FW_L2B_PTR",
+        0x4B: "RESERVED",
+        0x4C: "PREMIUM_CHIPSET_SEC_POLICY",
+        0x4D: "PREMIUM_CHIPSET_DEBUG_UNLOCK",
+        0x4E: "PMU_PUBKEY",
+        0x4F: "UMC_FW",
+        0x50: "BL_PUBLIC_KEY",
+        0x51: "TOS_PUBLIC_KEY",
+        0x52: "OEM_PSP_BL_USER_APP",
+        0x53: "OEM_PSP_BL_USER_APP_KEY",
+        0x54: "PSP_NVRAM",
+        0x55: "BL_ROLLBACK_SPL",
+        0x56: "TOS_ROLLBACK_SPL",
+        0x57: "PSP_BL_CVIP_TABLE",
+        0x58: "DMCU_ERAM",
+        0x59: "DMCU_ISR",
+        0x5A: "MSMU_BINARY_0",
+        0x5B: "MSMU_BINARY_1",
+        0x5C: "WMOS",
+        0x5D: "MPIO_FW",
+        0x5E: "DF_TOPOLOGY",
+        0x5F: "FW_PSP_SMUSCS_OR_TPMLITE",
+        0x64: "TEE_RAS_DRIVER",
+        0x65: "TEE_RAS_TRUSTED_APP",
+        0x67: "TEE_FHP_DRIVER_FW",
+        0x68: "TEE_SPDM_DRIVER_FW",
+        0x69: "TEE_DPE_DRIVER_FW",
+        0x6A: "TEE_PRE_MEM_DRIVER_FW",
+        0x6B: "TEE_MP_RAS_DRIVER_FW",
+        0x6C: "TEE_POST_MEM_DRIVER_FW",
+        0x70: "BIOS_L2_PTR",
+        0x71: "PSP_DMCUB_CODE",
+        0x72: "PSP_DMCUB_DATA",
+        0x73: "PSP_FW_BOOT_LOADER",
+        0x74: "PSP_PLATFORM_DRIVER",
+        0x75: "FW_SOFT_FUSING_BINARY",
+        0x76: "REGISTER_INIT_BIN",
+        0x80: "OEM_SYS_TA",
+        0x81: "OEM_SYS_TA_SIGNING_KEY",
+        0x82: "IKEK_OEM",
+        0x84: "TKEK_OEM",
+        0x85: "AMF_FW1",
+        0x86: "AMF_FW2",
+        0x87: "MFD_MPM_FACTORY",
+        0x88: "MFD_MPM_WLAN_FW",
+        0x89: "MPM_DRIVER",
+        0x8A: "USB4_PHY_FW",
+        0x8B: "FIPS_CERTIFICATION_MODULE",
+        0x8C: "MPDMA_TF_FW",
+        0x8D: "IKEK_TA",
+        0x8E: "SEC_FW_DATA_RECORDER",
+        0x8F: "OFFCHIP_USB4_FW",
+        0x90: "CCX_CORE_INIT_AND_PM",
+        0x91: "GMI3_PHY_FW",
+        0x92: "MPDMA_MPDACC_TIERED_MEMORY_PAGE_MIGRATION_FW",
+        0x93: "PROM21_FW",
+        0x94: "LSDMA_FW",
+        0x95: "C20_PHY_FW",
+        0x96: "NPU_FW",
+        0x97: "AMD_SFFS_PUBKEY",
+        0x98: "CPU_FEAT_CONFIG_TBL",
+        0x99: "PMF_BINARY",
+        0x9A: "REDUCED_MSMU_SIZE",
+        0x9B: "GFX_IMU_LX7_CODE",
+        0x9C: "GFX_IMU_LX7_DATA",
+        0x9D: "FW_ROM_OR_FIPS_SRAM",
+        0x9E: "SFDR_DATA",
+        0x9F: "REG_ACCESS_WHITELIST",
+        0xA0: "CPU_S3_IMAGE",
+        0xA2: "UZSC_RESET_WORKAROUND",
+        0xA3: "USB_NATIVE_DP",
+        0xA4: "USB_TYPEC_DP",
+        0xA5: "USB_SS_FW",
+        0xA6: "USB4",
+        0xA7: "OFFCHIP_XHCI_SATA_PCIE",
+        0xAA: "ASP_LIBSEC",
+        0xAB: "ART_FMC_IMG",
+        0xAC: "ART_RUNTIME_FW",
+        0xAD: "ART_KEY_DATABASE",
+        0xAE: "SEC_ASP_LIBROM_OVERLAY_FW",
+        0xB0: "MPM_CONTEXT",
     }
 
     # Entry types which overlap the type value with PSP directory, but are present only in BIOS directory
     BIOS_DIRECTORY_ENTRY_TYPES = {
-        0x60: 'APCB',
-        0x61: 'APOB',
-        0x62: 'BIOS',
-        0x63: 'APOB_NV_COPY',
-        0x64: 'PMU_CODE',
-        0x65: 'PMU_DATA',
-        0x66: 'MICROCODE_PATCH',
-        0x67: 'CORE_MCE_DATA',
-        0x68: 'APCB_COPY',
-        0x69: 'EARLY_VGA_IMAGE',
-        0x6B: 'COREBOOT_VBOOT_CONTEXT',
-        0x6D: 'ROM_ARMOR_BIOS_NVSTORE',
-        0x6E: 'DEBUG_UNIT',
-        0x6F: 'OEM_LOGO_IMAGE',
-        0x77: 'DDRPHY_PCU_FW',
-        0x7B: 'MPRAS_TRUSTRED_APP_IMG',
-        0x7C: 'OC_SWEET_SPOT_PROFILE',
+        0x60: "APCB",
+        0x61: "APOB",
+        0x62: "BIOS",
+        0x63: "APOB_NV_COPY",
+        0x64: "PMU_CODE",
+        0x65: "PMU_DATA",
+        0x66: "MICROCODE_PATCH",
+        0x67: "CORE_MCE_DATA",
+        0x68: "APCB_COPY",
+        0x69: "EARLY_VGA_IMAGE",
+        0x6B: "COREBOOT_VBOOT_CONTEXT",
+        0x6D: "ROM_ARMOR_BIOS_NVSTORE",
+        0x6E: "DEBUG_UNIT",
+        0x6F: "OEM_LOGO_IMAGE",
+        0x77: "DDRPHY_PCU_FW",
+        0x7B: "MPRAS_TRUSTRED_APP_IMG",
+        0x7C: "OC_SWEET_SPOT_PROFILE",
     }
 
-    PUBKEY_ENTRY_TYPES = [0x0, 0x9, 0xa, 0x5, 0xd, 0x43, 0x4e, 0x53, 0x81, 0x97, 0xad ]
+    PUBKEY_ENTRY_TYPES = [0x0, 0x9, 0xA, 0x5, 0xD, 0x43, 0x4E, 0x53, 0x81, 0x97, 0xAD]
 
     # Types known to have no PSP HDR
     # TODO: Find a better way to identify those entries
-    NO_HDR_ENTRY_TYPES = [0x4, 0xb, 0x21, 0x40, 0x48, 0x49, 0x4a, 0x70, 0x6, 0x61, 0x60, 0x68, 0x5f,
-                          0x1a, 0x22, 0x63, 0x67, 0x66, 0x6d, 0x62, 0x61, 0x7, 0x38, 0x46, 0x54,
-                          0x82, 0x84, 0x8d, 0x69, 0x7c, 0x98 ]
+    NO_HDR_ENTRY_TYPES = [
+        0x4,
+        0xB,
+        0x21,
+        0x40,
+        0x48,
+        0x49,
+        0x4A,
+        0x70,
+        0x6,
+        0x61,
+        0x60,
+        0x68,
+        0x5F,
+        0x1A,
+        0x22,
+        0x63,
+        0x67,
+        0x66,
+        0x6D,
+        0x62,
+        0x61,
+        0x7,
+        0x38,
+        0x46,
+        0x54,
+        0x82,
+        0x84,
+        0x8D,
+        0x69,
+        0x7C,
+        0x98,
+    ]
 
-    NO_SIZE_ENTRY_TYPES = [0xb]
+    NO_SIZE_ENTRY_TYPES = [0xB]
     KEY_STORE_TYPES = [0x50, 0x51]
 
     class ParseError(Exception):
@@ -306,10 +336,7 @@ class File(NestedBuffer):
             if self.compressed:
                 zlib_hdr = zlib_find_header(self.blob[offset:])
                 if zlib_hdr != -1:
-                    zlib_size = int.from_bytes(
-                        self.blob.get_bytes(offset + 0x14, 4),
-                        'little'
-                    )
+                    zlib_size = int.from_bytes(self.blob.get_bytes(offset + 0x14, 4), "little")
                     super().__init__(parent_buffer, zlib_hdr + zlib_size, buffer_offset=offset)
                     self.size_uncompressed = entry.size
                 else:
@@ -336,12 +363,17 @@ class File(NestedBuffer):
         return False
 
     def __repr__(self):
-        return f'{self.__class__.__name__}(type={hex(self.type)}, address={hex(self.get_address())}, ' \
-               f'size={hex(self.buffer_size)}, len(references)={len(self.references)})'
+        return (
+            f"{self.__class__.__name__}(type={hex(self.type)}, address={hex(self.get_address())}, "
+            f"size={hex(self.buffer_size)}, len(references)={len(self.references)})"
+        )
 
     def __eq__(self, other):
-        return self.type == other.type and self.get_address() == other.get_address() and \
-               self.buffer_size == other.buffer_size
+        return (
+            self.type == other.type
+            and self.get_address() == other.get_address()
+            and self.buffer_size == other.buffer_size
+        )
 
     def __hash__(self):
         return hash((self.type, self.get_address(), self.buffer_size))
@@ -359,9 +391,9 @@ class File(NestedBuffer):
             if self.type == 0x61:
                 return "APOB"
             if self.type in self.BIOS_DIRECTORY_ENTRY_TYPES:
-                return f'{self.BIOS_DIRECTORY_ENTRY_TYPES[self.type]}~{hex(self.type)}'
+                return f"{self.BIOS_DIRECTORY_ENTRY_TYPES[self.type]}~{hex(self.type)}"
         if self.type in self.DIRECTORY_ENTRY_TYPES:
-            return f'{self.DIRECTORY_ENTRY_TYPES[self.type]}~{hex(self.type)}'
+            return f"{self.DIRECTORY_ENTRY_TYPES[self.type]}~{hex(self.type)}"
         else:
             return hex(self.type)
 
@@ -369,13 +401,13 @@ class File(NestedBuffer):
         return hex(self.entry.destination)
 
     def get_readable_version(self):
-        return ''
+        return ""
 
     def get_readable_magic(self):
-        return ''
+        return ""
 
     def get_readable_signed_by(self):
-        return ''
+        return ""
 
     def shannon_entropy(self):
         return shannon(self[:])
@@ -410,7 +442,7 @@ class BiosFile(File):
             return self.buffer_offset
 
     def __repr__(self):
-        return super().__repr__()[:-1] + f', destination={hex(self.destination)})'
+        return super().__repr__()[:-1] + f", destination={hex(self.destination)})"
 
     def get_readable_destination_address(self):
         return hex(self.destination)

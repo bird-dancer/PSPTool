@@ -26,4 +26,4 @@ class Firmware(NestedBuffer):
         self.type = firmware_type
 
     def __repr__(self):
-        return f'<Firmware(type={self.type}, address={hex(self.get_address())}, magic={self.magic})>)'
+        return f"<Firmware(type={self.type}, address={hex(self.get_address())}, magic={self.magic})>)"

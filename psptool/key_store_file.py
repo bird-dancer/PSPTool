@@ -21,7 +21,6 @@ from .utils import NestedBuffer
 
 
 class KeyStoreFile(HeaderFile):
-
     def get_checksummed_bytes(self):
         return self.key_store.get_bytes()
 
@@ -37,7 +36,9 @@ class KeyStoreFile(HeaderFile):
         key_store_size = self.header.body_size
 
         if self.compressed:
-            self.key_store = KeyStore(bytearray(self.get_decrypted_decompressed_body()), self.size_uncompressed, buffer_offset=0)
+            self.key_store = KeyStore(
+                bytearray(self.get_decrypted_decompressed_body()), self.size_uncompressed, buffer_offset=0
+            )
         else:
             self.key_store = KeyStore(self, key_store_size, buffer_offset=key_store_start)
 
@@ -45,16 +46,16 @@ class KeyStoreFile(HeaderFile):
         signature_size = self.header.signature_size
         assert signature_size in {0x100, 0x200}
         self.signature = Signature(self, signature_size, signature_start)
-        #self.signature = ReversedSignature(self, signature_size, signature_start)
+        # self.signature = ReversedSignature(self, signature_size, signature_start)
 
     def get_signed_bytes(self):
         return self.header.get_bytes() + self.key_store.get_bytes()
 
     def get_readable_version(self):
-        return '1'
+        return "1"
 
     def get_readable_magic(self):
-        return f'{self.header.magic}'[2:-1]
+        return f"{self.header.magic}"[2:-1]
 
     def get_readable_signed_by(self):
         return self.header.certifying_id.magic
@@ -65,27 +66,26 @@ class KeyStoreFile(HeaderFile):
 
 
 class KeyStoreFileHeader(NestedBuffer):
-
     HEADER_SIZE = 0x100
 
     def __init__(self, file):
         super().__init__(file, self.HEADER_SIZE)
 
         self._magic = NestedBuffer(self, 0x4, buffer_offset=0x10)
-        assert self.magic in {b'$PS1', 4*b'\0'}
+        assert self.magic in {b"$PS1", 4 * b"\0"}
 
         self._body_size = NestedBuffer(self, 0x4, buffer_offset=0x14)
         # todo: work around the 0x6c size here, because this field doesn't exist in Zen 5
-        self._packed_size = NestedBuffer(self, 0x4, buffer_offset=0x6c)
+        self._packed_size = NestedBuffer(self, 0x4, buffer_offset=0x6C)
         assert self.signature_size in {0x100, 0x200}
 
         self.certifying_id = KeyId(self, 0x10, buffer_offset=0x38)
 
         self._unknown_constant_1 = NestedBuffer(self, 0x4, buffer_offset=0x30)
         self._unknown_constant_2 = NestedBuffer(self, 0x4, buffer_offset=0x34)
-        assert self.unknown_constants == (b'\1\0\0\0', b'\2\0\0\0')
+        assert self.unknown_constants == (b"\1\0\0\0", b"\2\0\0\0")
 
-        self._keystore_type = NestedBuffer(self, 0x4, buffer_offset=0x7c)
+        self._keystore_type = NestedBuffer(self, 0x4, buffer_offset=0x7C)
         assert self.keystore_type in File.KEY_STORE_TYPES or self.keystore_type == 0
 
         # Based on KeyStore entries seen in: Lenovo X13 and Lenovo Ideapad 5 Pro 16ACH6
@@ -112,15 +112,15 @@ class KeyStoreFileHeader(NestedBuffer):
 
     @property
     def body_size(self) -> int:
-        return int.from_bytes(self._body_size.get_bytes(), 'little')
+        return int.from_bytes(self._body_size.get_bytes(), "little")
 
     @property
     def packed_size(self) -> int:
-        return int.from_bytes(self._packed_size.get_bytes(), 'little')
+        return int.from_bytes(self._packed_size.get_bytes(), "little")
 
     @property
     def keystore_type(self) -> int:
-        return int.from_bytes(self._keystore_type.get_bytes(), 'little')
+        return int.from_bytes(self._keystore_type.get_bytes(), "little")
 
     @property
     def signature_size(self) -> int:
@@ -132,13 +132,12 @@ class KeyStoreFileHeader(NestedBuffer):
     @property
     def unknown_constants(self) -> (bytes, bytes, bytes):
         return (
-                self._unknown_constant_1.get_bytes(),
-                self._unknown_constant_2.get_bytes(),
-                )
+            self._unknown_constant_1.get_bytes(),
+            self._unknown_constant_2.get_bytes(),
+        )
 
 
 class KeyStore(NestedBuffer):
-
     HEADER_SIZE = 0x50
 
     def __init__(self, parent_buffer, buffer_size: int, buffer_offset: int = 0):
@@ -154,9 +153,9 @@ class KeyStore(NestedBuffer):
         assert self.unknown_flag
 
         self.magic = NestedBuffer(self.header, 0x4, buffer_offset=0x8)
-        assert self.magic.get_bytes() == b'$KDB'
+        assert self.magic.get_bytes() == b"$KDB"
 
-        assert self.header.get_bytes(0xc, 0x44) == b'\0' * 0x44
+        assert self.header.get_bytes(0xC, 0x44) == b"\0" * 0x44
 
         # parse body
         body_start = self.header.buffer_size
@@ -173,17 +172,16 @@ class KeyStore(NestedBuffer):
 
     @property
     def size(self) -> int:
-        return int.from_bytes(self._size.get_bytes(), 'little')
+        return int.from_bytes(self._size.get_bytes(), "little")
 
     @property
     def unknown_flag(self) -> bool:
-        value = int.from_bytes(self._unknown_flag.get_bytes(), 'little')
-        assert value in {0,1}
+        value = int.from_bytes(self._unknown_flag.get_bytes(), "little")
+        assert value in {0, 1}
         return value == 1
 
 
 class KeyStoreKey(NestedBuffer):
-
     HEADER_SIZE = 0x50
 
     def __init__(self, body: NestedBuffer, offset: int):
@@ -192,7 +190,7 @@ class KeyStoreKey(NestedBuffer):
         self.pubkey_entity = None
 
         # init self
-        size = int.from_bytes(body.get_bytes(offset, 0x4), 'little')
+        size = int.from_bytes(body.get_bytes(offset, 0x4), "little")
         super().__init__(body, size, buffer_offset=offset)
 
         # init header
@@ -214,7 +212,7 @@ class KeyStoreKey(NestedBuffer):
         self._unknown_id = NestedBuffer(self.header, 0x4, buffer_offset=0x8)
         assert self.unknown_id < 0x100
 
-        self._rsa_exponent = NestedBuffer(self.header, 0x4, buffer_offset=0xc)
+        self._rsa_exponent = NestedBuffer(self.header, 0x4, buffer_offset=0xC)
         assert self.rsa_exponent == 0x10001
 
         self.key_id = KeyId(self.header, 0x10, buffer_offset=0x10)
@@ -223,31 +221,30 @@ class KeyStoreKey(NestedBuffer):
         assert self.key_size == self.crypto_material.buffer_size << 3
 
         # todo: version maybe?
-        assert self.header.get_bytes(0x24, 0x2c) in [
-            b'\0' * 0x2b + b'\0',
-            b'\0' * 0x2b + b'\1',
-            b'\0' * 0x2b + b'\2',
-
+        assert self.header.get_bytes(0x24, 0x2C) in [
+            b"\0" * 0x2B + b"\0",
+            b"\0" * 0x2B + b"\1",
+            b"\0" * 0x2B + b"\2",
         ]
 
     @property
     def size(self) -> int:
-        return int.from_bytes(self._size.get_bytes(), 'little')
+        return int.from_bytes(self._size.get_bytes(), "little")
 
     @property
     def unknown_flag(self) -> bool:
-        value = int.from_bytes(self._unknown_flag.get_bytes(), 'little')
-        assert value in {0,1}
+        value = int.from_bytes(self._unknown_flag.get_bytes(), "little")
+        assert value in {0, 1}
         return value == 1
 
     @property
     def unknown_id(self) -> int:
-        return int.from_bytes(self._unknown_id.get_bytes(), 'little')
+        return int.from_bytes(self._unknown_id.get_bytes(), "little")
 
     @property
     def rsa_exponent(self) -> int:
-        return int.from_bytes(self._rsa_exponent.get_bytes(), 'little')
+        return int.from_bytes(self._rsa_exponent.get_bytes(), "little")
 
     @property
     def key_size(self) -> int:
-        return int.from_bytes(self._key_size.get_bytes(), 'little')
+        return int.from_bytes(self._key_size.get_bytes(), "little")

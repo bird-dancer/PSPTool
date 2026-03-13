@@ -27,9 +27,10 @@ from .pubkey_file import PubkeyFile, InlinePubkeyFile
 
 
 class Blob(NestedBuffer):
-    _FIRMWARE_ENTRY_MAGIC = b'\xAA\x55\xAA\x55'
+    _FIRMWARE_ENTRY_MAGIC = b"\xaa\x55\xaa\x55"
     # All structures per Rom must be in 16MB windows
     _MAX_PAGE_SIZE = 16 * 1024 * 1024
+
     class NoFirmwareEntryTableError(Exception):
         pass
 
@@ -42,10 +43,10 @@ class Blob(NestedBuffer):
         possible_fet_offsets = [
             # as seen by a PSPTrace Zen 1 boot
             0x020000,
-            0xfa0000,
-            0xf20000,
-            0xe20000,
-            0xc20000,
+            0xFA0000,
+            0xF20000,
+            0xE20000,
+            0xC20000,
             0x820000,
         ]
 
@@ -87,29 +88,30 @@ class Blob(NestedBuffer):
         self._construct_range_dict()
 
     def __repr__(self):
-        return f'Blob({self.roms=})'
+        return f"Blob({self.roms=})"
 
     def _construct_range_dict(self):
         all_files = self.unique_files()
 
         # create RangeDict in order to find entries, directories and fets for a given address
         directories = [directory for rom in self.roms for directory in rom.directories]
-        self.range_dict = RangeDict({
-            **{
-                range(file.get_address(),
-                      file.get_address() + file.buffer_size):  # key is start and end address of the file
-                file
-                for file in all_files if file.buffer_size != 0xffffffff  # value is its type
-            }, **{
-                range(directory.get_address(), directory.get_address() + len(directory)):
-                    directory
-                for directory in directories
-            }, **{
-                range(rom.fet.get_address(), rom.fet.get_address() + len(rom.fet)):
-                    rom.fet
-                for rom in self.roms
+        self.range_dict = RangeDict(
+            {
+                **{
+                    range(
+                        file.get_address(), file.get_address() + file.buffer_size
+                    ):  # key is start and end address of the file
+                    file
+                    for file in all_files
+                    if file.buffer_size != 0xFFFFFFFF  # value is its type
+                },
+                **{
+                    range(directory.get_address(), directory.get_address() + len(directory)): directory
+                    for directory in directories
+                },
+                **{range(rom.fet.get_address(), rom.fet.get_address() + len(rom.fet)): rom.fet for rom in self.roms},
             }
-        })
+        )
 
     def unique_files(self) -> set:
         directories = [directory for rom in self.roms for directory in rom.directories]
@@ -122,18 +124,17 @@ class Blob(NestedBuffer):
 
     def _find_fets(self):
         # AA55AA55 is to unspecific, so we require a word of padding before (to be tested)
-        for m in re.finditer(b'\xff\xff\xff\xff' + self._FIRMWARE_ENTRY_MAGIC, self.get_buffer()):
+        for m in re.finditer(b"\xff\xff\xff\xff" + self._FIRMWARE_ENTRY_MAGIC, self.get_buffer()):
             fet_offset = m.start() + 4
             yield fet_offset
-        for m in re.finditer(b'\x00\x00\x00\x00' + self._FIRMWARE_ENTRY_MAGIC, self.get_buffer()):
+        for m in re.finditer(b"\x00\x00\x00\x00" + self._FIRMWARE_ENTRY_MAGIC, self.get_buffer()):
             fet_offset = m.start() + 4
             yield fet_offset
 
     def _find_inline_pubkeys(self, fp):
-
-        """ Try to find a pubkey in any of the found files.
+        """Try to find a pubkey in any of the found files.
         The pubkey is identified by its fingerprint. If found, the pubkey is
-        added to the list of pubkeys of the blob """
+        added to the list of pubkeys of the blob"""
         found_pubkeys = []
 
         for file in self.unique_files():
@@ -142,10 +143,9 @@ class Blob(NestedBuffer):
             m = re.finditer(re.escape(binascii.a2b_hex(fp)), file.get_bytes())
             for index in m:
                 start_offset = index.start() - 4
-                if int.from_bytes(self[start_offset:start_offset + 4], 'little') in PubkeyFile.KNOWN_VERSIONS:
+                if int.from_bytes(self[start_offset : start_offset + 4], "little") in PubkeyFile.KNOWN_VERSIONS:
                     # Maybe a pubkey. Determine its size:
-                    pub_exp_size = int.from_bytes(self[start_offset + 0x38: start_offset + 0x3c],
-                                                  'little')
+                    pub_exp_size = int.from_bytes(self[start_offset + 0x38 : start_offset + 0x3C], "little")
                     if pub_exp_size == 2048:
                         size = 0x240
                     elif pub_exp_size == 4096:
@@ -153,10 +153,10 @@ class Blob(NestedBuffer):
                     else:
                         continue
 
-                    key_id = self[start_offset + 0x04: start_offset + 0x14]
-                    cert_id = self[start_offset + 0x14: start_offset + 0x24]
+                    key_id = self[start_offset + 0x04 : start_offset + 0x14]
+                    cert_id = self[start_offset + 0x14 : start_offset + 0x24]
 
-                    if key_id != cert_id and cert_id != b'\0' * 0x10:
+                    if key_id != cert_id and cert_id != b"\0" * 0x10:
                         if pub_exp_size == 2048:
                             size += 0x100
                         else:
@@ -169,7 +169,7 @@ class Blob(NestedBuffer):
                         found_pubkeys.append(file)
                     except File.ParseError as e:
                         self.psptool.ph.print_warning(f"_find_pubkey: File parse error at 0x{start_offset:x}")
-                        self.psptool.ph.print_warning(f'{e}')
+                        self.psptool.ph.print_warning(f"{e}")
 
         return found_pubkeys
 

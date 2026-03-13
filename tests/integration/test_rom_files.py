@@ -8,7 +8,7 @@ from psptool import PSPTool
 from psptool.header_file import HeaderFile
 
 dirname = os.path.dirname(__file__)
-rom_fixtures_path = os.path.join(dirname, 'fixtures/roms')
+rom_fixtures_path = os.path.join(dirname, "fixtures/roms")
 
 # todo: add extraction tests
 #  - extract entry and make sure it has the correct size
@@ -22,7 +22,7 @@ class TestRomFiles(unittest.TestCase):
     def fixture_roms(self):
         for subdir, dirs, files in os.walk(rom_fixtures_path):
             for file in files:
-                if file[0] == '.':
+                if file[0] == ".":
                     continue
                 filename = os.path.join(subdir, file)
                 yield filename
@@ -33,7 +33,7 @@ class TestRomFiles(unittest.TestCase):
                 with contextlib.redirect_stderr(stderr_buf):
                     self.cached_pts[filename] = psptool.PSPTool.from_file(filename)
                     print(f"{filename=} ...")
-                warnings = stderr_buf.getvalue().split('\n')
+                warnings = stderr_buf.getvalue().split("\n")
 
         return self.__class__.cached_pts[filename]
 
@@ -50,7 +50,7 @@ class TestRomFiles(unittest.TestCase):
         for filename in self.fixture_roms():
             pt = self.pt_from_file(filename)
             with self.subTest(filename):
-                pt.to_file('/dev/null')
+                pt.to_file("/dev/null")
 
     def test_ls(self):
         for filename in self.fixture_roms():
@@ -73,7 +73,9 @@ class TestRomFiles(unittest.TestCase):
                 directories = rom.directories
                 for dir_index, directory in enumerate(directories):
                     for entry_index, entry in enumerate(directory.entries):
-                        with self.subTest(f"{filename=}, path={rom_index}.{dir_index}.{entry_index}, type={entry.type}"):
+                        with self.subTest(
+                            f"{filename=}, path={rom_index}.{dir_index}.{entry_index}, type={entry.type}"
+                        ):
                             out_bytes = entry.get_bytes()
                             self.assertEqual(len(out_bytes), entry.buffer_size)
 
@@ -85,7 +87,9 @@ class TestRomFiles(unittest.TestCase):
                 directories = rom.directories
                 for dir_index, directory in enumerate(directories):
                     for entry_index, entry in enumerate(directory.files):
-                        with self.subTest(f"{filename=}, path={rom_index}.{dir_index}.{entry_index}, type={entry.type}"):
+                        with self.subTest(
+                            f"{filename=}, path={rom_index}.{dir_index}.{entry_index}, type={entry.type}"
+                        ):
                             if isinstance(entry, HeaderFile):
                                 with io.StringIO() as stderr_buf:
                                     with contextlib.redirect_stderr(stderr_buf):
@@ -94,6 +98,6 @@ class TestRomFiles(unittest.TestCase):
                                     self.assertEqual(stderr_buf.getvalue(), "")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(f"\nTesting module {psptool.__version__}")
     unittest.main()
