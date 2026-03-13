@@ -24,7 +24,6 @@ from .file import File
 
 
 class HeaderFile(File):
-
     HEADER_LEN = 0x100
 
     def _parse(self):
@@ -40,28 +39,28 @@ class HeaderFile(File):
 
         # todo: use NestedBuffers instead of saving by value
         self.magic = self.header[0x10:0x14]
-        self.size_signed = struct.unpack('<I', self.header[0x14:0x18])[0]
-        self.encrypted = struct.unpack('<I', self.header[0x18:0x1c])[0] == 1
-        self._sha256_checksum = NestedBuffer(self, 0x20, 0xd0)
-        self._sha384_checksum = NestedBuffer(self, 0x30, 0xd0)
+        self.size_signed = struct.unpack("<I", self.header[0x14:0x18])[0]
+        self.encrypted = struct.unpack("<I", self.header[0x18:0x1C])[0] == 1
+        self._sha256_checksum = NestedBuffer(self, 0x20, 0xD0)
+        self._sha384_checksum = NestedBuffer(self, 0x30, 0xD0)
         self._signed = NestedBuffer(self, 4, 0x30)
-        self.signature_type = struct.unpack('<I', self.header[0x34:0x38])[0]
+        self.signature_type = struct.unpack("<I", self.header[0x34:0x38])[0]
         self.signature_fingerprint = hexlify(self.header[0x38:0x48])
-        self.compressed = struct.unpack('<I', self.header[0x48:0x4c])[0] == 1
-        self.unknown_field_2 = struct.unpack('<I', self.header[0x4c:0x50])[0]
-        self.size_uncompressed = struct.unpack('<I', self.header[0x50:0x54])[0]
-        self.zlib_size = struct.unpack('<I', self.header[0x54:0x58])[0]
-        self.bitfield = struct.unpack('>I', self.header[0x58:0x5c])[0]
-        self.version = self.header[0x63:0x5f:-1]
-        self.load_addr = struct.unpack('<I', self.header[0x68:0x6c])[0]
-        self.rom_size = struct.unpack('<I', self.header[0x6c:0x70])[0]
-        self.unknown_field_3 = struct.unpack('<I', self.header[0x7c:0x80])[0]
+        self.compressed = struct.unpack("<I", self.header[0x48:0x4C])[0] == 1
+        self.unknown_field_2 = struct.unpack("<I", self.header[0x4C:0x50])[0]
+        self.size_uncompressed = struct.unpack("<I", self.header[0x50:0x54])[0]
+        self.zlib_size = struct.unpack("<I", self.header[0x54:0x58])[0]
+        self.bitfield = struct.unpack(">I", self.header[0x58:0x5C])[0]
+        self.version = self.header[0x63:0x5F:-1]
+        self.load_addr = struct.unpack("<I", self.header[0x68:0x6C])[0]
+        self.rom_size = struct.unpack("<I", self.header[0x6C:0x70])[0]
+        self.unknown_field_3 = struct.unpack("<I", self.header[0x7C:0x80])[0]
 
         self.has_sha256_checksum = self.bitfield & 0b01
         self.has_sha384_checksum = self.bitfield & 0b10
 
         if self.has_sha256_checksum and self.has_sha384_checksum:
-            raise File.ParseError('File should not have both sha256 and sha384 checksum bits set!')
+            raise File.ParseError("File should not have both sha256 and sha384 checksum bits set!")
 
         if self.rom_size == 0:
             self.rom_size = self.buffer_size
@@ -92,8 +91,8 @@ class HeaderFile(File):
         if self.encrypted:
             self.iv = self.header[0x20:0x30]
             self.key = self.header[0x80:0x90]
-            assert(self.iv != (b'\x00' * 16))
-            assert(self.key != (b'\x00' * 16))
+            assert self.iv != (b"\x00" * 16)
+            assert self.key != (b"\x00" * 16)
 
         assert 0 < self.rom_size <= self.buffer_size
         self.buffer_size = self.rom_size
@@ -123,13 +122,13 @@ class HeaderFile(File):
 
     @property
     def is_signed(self) -> bool:
-        signed = int.from_bytes(self._signed.get_bytes(), 'little')
-        if signed not in {0, 1, 0xffff0000}:
-            raise self.ParseError(f'Did not expect signed to be 0x{signed:x}')
+        signed = int.from_bytes(self._signed.get_bytes(), "little")
+        if signed not in {0, 1, 0xFFFF0000}:
+            raise self.ParseError(f"Did not expect signed to be 0x{signed:x}")
         return signed != 0
 
     def get_readable_version(self):
-        return '.'.join([hex(b)[2:].upper() for b in self.version])
+        return ".".join([hex(b)[2:].upper() for b in self.version])
 
     def get_ikek_md5sum(self) -> bytes:
         ikek = self.parent_buffer.get_files_by_type(0x21)[0]
@@ -139,20 +138,20 @@ class HeaderFile(File):
 
     def get_readable_magic(self):
         # if self.magic == b'\x01\x00\x00\x00':
-            # actually twice as long, but SMURULESMURULES is kinda redundant
-            # readable_magic= self[0x0:0x4]
-        if self.magic == b'\x05\x00\x00\x00':
-            readable_magic = b'0x05'
+        # actually twice as long, but SMURULESMURULES is kinda redundant
+        # readable_magic= self[0x0:0x4]
+        if self.magic == b"\x05\x00\x00\x00":
+            readable_magic = b"0x05"
         else:
             readable_magic = self.magic
 
         try:
             # Try to encode the id as ascii
-            readable_magic = str(readable_magic, encoding='ascii')
+            readable_magic = str(readable_magic, encoding="ascii")
             # and remove unprintable chars
-            readable_magic = ''.join(s for s in readable_magic if s in string.printable)
+            readable_magic = "".join(s for s in readable_magic if s in string.printable)
         except UnicodeDecodeError:
-            return ''
+            return ""
 
         return readable_magic
 
@@ -161,14 +160,14 @@ class HeaderFile(File):
 
     def get_signed_bytes(self) -> bytes:
         file_bytes = self.header.get_bytes() + self.get_decrypted_decompressed_body()
-        return file_bytes[:len(self.header) + self.size_signed]
+        return file_bytes[: len(self.header) + self.size_signed]
 
     def get_decrypted_decompressed_body(self) -> bytes:
         output = self.get_decrypted_body()
 
         if self.compressed:
             try:
-                return zlib_decompress(output[:self.zlib_size])
+                return zlib_decompress(output[: self.zlib_size])
             except:
                 self.psptool.ph.print_warning(f"ZLIB decompression failed on file {self.get_readable_type()}")
         return output
@@ -176,9 +175,9 @@ class HeaderFile(File):
     def to_decrypted_file_bytes(self) -> bytes:
         """Returns the bytes of the same file, just with the encryption removed"""
         header = bytearray(self.header.get_bytes())
-        header[0x18:0x1c] = bytes(4)
+        header[0x18:0x1C] = bytes(4)
         header[0x20:0x30] = bytes(0x10)
-        signature = self.signature.get_bytes() if self.is_signed else b''
+        signature = self.signature.get_bytes() if self.is_signed else b""
         return bytes(header) + self.get_decrypted_body() + signature
 
     def get_decrypted_body(self) -> bytes:
@@ -186,7 +185,7 @@ class HeaderFile(File):
             return self.body.get_bytes()
         else:
             unwrapped_ikek = self.get_unwrapped_ikek()
-            assert(unwrapped_ikek != None)
+            assert unwrapped_ikek != None
             return decrypt(self.body.get_bytes(), self.key, unwrapped_ikek, self.iv)
 
     def get_unwrapped_ikek(self) -> bytes:
@@ -210,5 +209,7 @@ class HeaderFile(File):
         try:
             m.update(self.body.get_bytes())
         except:
-            self.psptool.ph.print_warning(f"Get bytes failed at file: 0x{self.get_address():x} type: {self.get_readable_type()} size: 0x{self.buffer_size:x}")
+            self.psptool.ph.print_warning(
+                f"Get bytes failed at file: 0x{self.get_address():x} type: {self.get_readable_type()} size: 0x{self.buffer_size:x}"
+            )
         return m.hexdigest()

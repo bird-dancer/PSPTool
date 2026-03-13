@@ -24,23 +24,24 @@ from typing import List
 
 
 class Directory(NestedBuffer):
-    DIRECTORY_MAGICS = [b'$PSP', b'$PL2']
+    DIRECTORY_MAGICS = [b"$PSP", b"$PL2"]
     HEADER_SIZE = 4 * 4
 
     ENTRY_CLASS = DirectoryEntry
     ENTRY_SIZE = DirectoryEntry.ENTRY_SIZE
     FILE_CLASS = File
 
-    ZEN_GENERATION_IDS = {'Zen 1'  : [b'\x00\x09\xBC', b'\x00\x0A\xBC'],
-                          'Zen 2'  : [b'\x05\x0B\xBC', b'\x01\x0A\xBC'],
-                          'Zen 3'  : [b'\x01\x0C\xBC', b'\x00\x0C\xBC'],
-                          'Zen 4'  : [b'\x04\x0D\xBC', b'\x0B\x0D\xBC'],
-                          'Zen 4/5': [b'\x03\x0D\xBC']
-                         }
+    ZEN_GENERATION_IDS = {
+        "Zen 1": [b"\x00\x09\xbc", b"\x00\x0a\xbc"],
+        "Zen 2": [b"\x05\x0b\xbc", b"\x01\x0a\xbc"],
+        "Zen 3": [b"\x01\x0c\xbc", b"\x00\x0c\xbc"],
+        "Zen 4": [b"\x04\x0d\xbc", b"\x0b\x0d\xbc"],
+        "Zen 4/5": [b"\x03\x0d\xbc"],
+    }
 
     @classmethod
     def get_possible_zen_generation(cls, zen_generation_id):
-        zen_generation = 'unknown'
+        zen_generation = "unknown"
         for possible_zen_generation in cls.ZEN_GENERATION_IDS:
             if zen_generation_id in cls.ZEN_GENERATION_IDS[possible_zen_generation]:
                 zen_generation = possible_zen_generation
@@ -55,7 +56,7 @@ class Directory(NestedBuffer):
         return BiosDirectory
 
     @classmethod
-    def create_directories_if_not_exist(cls, offset, fet, zen_generation=None) -> List['Directory']:
+    def create_directories_if_not_exist(cls, offset, fet, zen_generation=None) -> List["Directory"]:
         # Recursively return or create and return found directories
 
         if offset in fet.psptool.directories_by_offset:
@@ -79,20 +80,22 @@ class Directory(NestedBuffer):
 
             # 2. Recursively add secondary directories referenced by the just created directory, if applicable
             for secondary_directory_offset in directory.secondary_directory_offsets:
-                secondary_directories = cls.create_directories_if_not_exist(secondary_directory_offset, fet, zen_generation)
+                secondary_directories = cls.create_directories_if_not_exist(
+                    secondary_directory_offset, fet, zen_generation
+                )
                 created_directories += secondary_directories
 
             # 3. Recursively add tertiary directories (double references introduced in Zen 4), if applicable
             for tertiary_directory_offset in directory.tertiary_directory_offsets:
                 directory_body = fet.rom.get_bytes(tertiary_directory_offset, 32)
-                actual_tertiary_offset = int.from_bytes(directory_body[16:20], 'little')
+                actual_tertiary_offset = int.from_bytes(directory_body[16:20], "little")
                 zen_generation_id = directory_body[21:24]
                 zen_generation = cls.get_possible_zen_generation(zen_generation_id)
-                if zen_generation == 'unknown':
+                if zen_generation == "unknown":
                     fet.psptool.ph.print_warning(f"Unknown {zen_generation_id=}")
 
-                zen_generation_id = hex(int.from_bytes(directory_body[20:24], 'little'))
-                zen_generation += f' (PSP ID {zen_generation_id})'
+                zen_generation_id = hex(int.from_bytes(directory_body[20:24], "little"))
+                zen_generation += f" (PSP ID {zen_generation_id})"
 
                 # Resolve one more indirection
                 tertiary_directories = cls.create_directories_if_not_exist(actual_tertiary_offset, fet, zen_generation)
@@ -105,7 +108,7 @@ class Directory(NestedBuffer):
         rom_offset &= fet.rom.addr_mask
         magic = fet.rom.get_bytes(rom_offset, 4)
 
-        if magic == b'\xff\xff\xff\xff' or magic == b'\x00\x00\x00\x00':
+        if magic == b"\xff\xff\xff\xff" or magic == b"\x00\x00\x00\x00":
             fet.psptool.ph.print_warning(f"Empty FET entry at ROM address 0x{rom_offset:x}")
             raise Directory.ParseError("Empty entry")
         if magic in cls.DIRECTORY_MAGICS:
@@ -125,7 +128,7 @@ class Directory(NestedBuffer):
         self.bios_directory_type = BiosDirectory
 
         # a directory must parse itself before it knows its size and can initialize its buffer
-        self._count = int.from_bytes(self.rom[self.buffer_offset + 8: self.buffer_offset + 12], 'little')
+        self._count = int.from_bytes(self.rom[self.buffer_offset + 8 : self.buffer_offset + 12], "little")
         self.magic = self.rom.get_bytes(self.buffer_offset, 4)
         assert self.magic in self.DIRECTORY_MAGICS
         self.additional_info = self.rom.get_bytes(self.buffer_offset + 12, 4)
@@ -165,7 +168,7 @@ class Directory(NestedBuffer):
         self.verify_checksum()
 
     def __repr__(self):
-        return f'{self.__class__.__name__}(address={hex(self.get_address())}, magic={self.magic}, count={self.count})'
+        return f"{self.__class__.__name__}(address={hex(self.get_address())}, magic={self.magic}, count={self.count})"
 
     @property
     def count(self):
@@ -176,7 +179,7 @@ class Directory(NestedBuffer):
         self._count = value
 
         # update binary representation
-        self.header[8:12] = struct.pack('<I', self.count)
+        self.header[8:12] = struct.pack("<I", self.count)
         self.update_checksum()
 
     # 00b: x86 Physical address
@@ -185,7 +188,7 @@ class Directory(NestedBuffer):
     # 11b: Offset from start of partition
     @property
     def address_mode(self):
-        info = struct.unpack('<L', self.additional_info)[0]
+        info = struct.unpack("<L", self.additional_info)[0]
         version = (info >> 31) & 1
         if version == 1:
             return (info >> 24) & 3
@@ -212,7 +215,7 @@ class Directory(NestedBuffer):
             if my_entry.type == file.type:
                 entry = my_entry
                 break
-        assert(entry is not None)
+        assert entry is not None
 
         # 2. Update fields
         entry.type = type_
@@ -226,14 +229,14 @@ class Directory(NestedBuffer):
     def update_zen_generation(self, fet, zen_generation):
         if zen_generation is not None:
             if zen_generation not in self.zen_generation:
-                self.zen_generation += '\n' + zen_generation
+                self.zen_generation += "\n" + zen_generation
                 for offset in self.secondary_directory_offsets:
                     dir = fet.psptool.directories_by_offset[offset]
                     dir.update_zen_generation(fet, zen_generation)
 
 
 class BiosDirectory(Directory):
-    DIRECTORY_MAGICS = [b'$BHD', b'$BL2']
+    DIRECTORY_MAGICS = [b"$BHD", b"$BL2"]
 
     ENTRY_CLASS = BiosDirectoryEntry
     ENTRY_SIZE = BiosDirectoryEntry.ENTRY_SIZE

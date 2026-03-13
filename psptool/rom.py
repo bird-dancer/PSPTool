@@ -44,13 +44,12 @@ class Rom(NestedBuffer):
         # one for Rome. Both will contain a valid FET which needs to be parsed.
         if len(res) == 2:
             self.dual_rom = True
-            self.agesa_version_second = str(re.sub(b'\x00', b' ', res[1]).strip().decode("ascii"))
-            return str(re.sub(b'\x00', b' ', res[0]).strip().decode("ascii"))
+            self.agesa_version_second = str(re.sub(b"\x00", b" ", res[1]).strip().decode("ascii"))
+            return str(re.sub(b"\x00", b" ", res[0]).strip().decode("ascii"))
         elif len(res) == 1:
-            return str(re.sub(b'\x00', b' ', res[0]).strip().decode("ascii"))
+            return str(re.sub(b"\x00", b" ", res[0]).strip().decode("ascii"))
         else:
-            return 'AGESA_UNKNOWN'
-
+            return "AGESA_UNKNOWN"
 
     def __repr__(self):
-        return f'Rom({self.agesa_version=})'
+        return f"Rom({self.agesa_version=})"

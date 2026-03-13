@@ -28,11 +28,11 @@ from cryptography.hazmat.backends import default_backend
 
 
 class ObligingArgumentParser(argparse.ArgumentParser):
-    """ Display the full help message whenever there is something wrong with the arguments.
-        (from https://groups.google.com/d/msg/argparse-users/LazV_tEQvQw/xJhBOm1qS5IJ) """
+    """Display the full help message whenever there is something wrong with the arguments.
+    (from https://groups.google.com/d/msg/argparse-users/LazV_tEQvQw/xJhBOm1qS5IJ)"""
 
     def error(self, message):
-        sys.stderr.write('Error: %s\n' % message)
+        sys.stderr.write("Error: %s\n" % message)
         self.print_help()
         sys.exit(2)
 
@@ -42,11 +42,13 @@ class NestedBuffer:
         self.parent_buffer = parent_buffer
         self.buffer_size = buffer_size
         self.buffer_offset = buffer_offset
-        if hasattr(parent_buffer, 'buffer_size'):
-            assert self.buffer_offset + self.buffer_size <= parent_buffer.buffer_size, \
-                f'Cannot create child buffer: overflows parent buffer\'s bounds!'
-        assert (self.buffer_size <= self.buffer_offset + self.buffer_size), \
-            f'sz=0x{self.buffer_size:x},off=0x{self.buffer_offset:x}'
+        if hasattr(parent_buffer, "buffer_size"):
+            assert self.buffer_offset + self.buffer_size <= parent_buffer.buffer_size, (
+                f"Cannot create child buffer: overflows parent buffer's bounds!"
+            )
+        assert self.buffer_size <= self.buffer_offset + self.buffer_size, (
+            f"sz=0x{self.buffer_size:x},off=0x{self.buffer_offset:x}"
+        )
 
     def __len__(self):
         return self.buffer_size
@@ -56,7 +58,7 @@ class NestedBuffer:
             new_slice = self._offset_slice(item)
             return self.parent_buffer[new_slice]
         else:
-            assert (isinstance(item, int))
+            assert isinstance(item, int)
             return self.parent_buffer[self.buffer_offset + item]
 
     def __setitem__(self, key, value):
@@ -64,18 +66,20 @@ class NestedBuffer:
             new_slice = self._offset_slice(key)
             self.parent_buffer[new_slice] = value
         else:
-            assert (isinstance(key, int))
+            assert isinstance(key, int)
             self.parent_buffer[self.buffer_offset + key] = value
 
     def __repr__(self):
-        return f'{self.__class__.__name__}(address={hex(self.get_address())}, buffer_size={hex(self.buffer_size)}, ' \
-                f'buffer_offset={hex(self.buffer_offset)}, self.parent_buffer=0x{self.parent_buffer.get_address():x})'
+        return (
+            f"{self.__class__.__name__}(address={hex(self.get_address())}, buffer_size={hex(self.buffer_size)}, "
+            f"buffer_offset={hex(self.buffer_offset)}, self.parent_buffer=0x{self.parent_buffer.get_address():x})"
+        )
 
     def _offset_slice(self, old_slice):
         if old_slice.start is None:
             start = self.buffer_offset
         else:
-            assert (old_slice.start <= self.buffer_size), "Slice offset out of bounds"
+            assert old_slice.start <= self.buffer_size, "Slice offset out of bounds"
             if old_slice.start < 0:
                 start = self.buffer_offset + old_slice.start % self.buffer_size
             else:
@@ -83,8 +87,7 @@ class NestedBuffer:
         if old_slice.stop is None:
             stop = self.buffer_offset + self.buffer_size
         else:
-            assert (old_slice.stop <= self.buffer_size), \
-                f'{old_slice.stop=},{self.buffer_size=}'
+            assert old_slice.stop <= self.buffer_size, f"{old_slice.stop=},{self.buffer_size=}"
             if old_slice.stop < 0:
                 stop = self.buffer_offset + old_slice.stop % self.buffer_size
             else:
@@ -104,11 +107,11 @@ class NestedBuffer:
 
     def get_bytes(self, offset: int = 0x0, size: int = None) -> bytes:
         size = self.buffer_size if size is None else size
-        return bytes(self[offset:offset + size])
+        return bytes(self[offset : offset + size])
 
     def set_bytes(self, address: int, size: int, value):
         assert len(value) == size, "set_bytes: value length does not match size argument"
-        self[address:address + size] = value
+        self[address : address + size] = value
 
     def get_chunks(self, size: int, offset: int = 0):
         return chunker(self[offset:], size)
@@ -133,23 +136,23 @@ class PrintHelper:
         self.info_counts = defaultdict(lambda: 0)
 
     def print_error_and_exit(self, arg0):
-        """ Wrapper function to print errors to stderr, so we don't interfere with e.g. extraction output. """
+        """Wrapper function to print errors to stderr, so we don't interfere with e.g. extraction output."""
         self.error_counts[arg0] += 1
-        arg0 = 'Error: ' + arg0 + '\n'
+        arg0 = "Error: " + arg0 + "\n"
         sys.stderr.write(arg0)
         sys.exit(1)
 
     def print_warning(self, arg0):
-        """ Wrapper function to print warnings to stderr, so we don't interfere with e.g. extraction output. """
+        """Wrapper function to print warnings to stderr, so we don't interfere with e.g. extraction output."""
         self.warning_counts[arg0] += 1
-        arg0 = 'Warning: ' + arg0 + '\n'
+        arg0 = "Warning: " + arg0 + "\n"
         sys.stderr.write(arg0)
 
     def print_info(self, arg0):
-        """ Wrapper function to print info to stderr, so we don't interfere with e.g. extraction output. """
+        """Wrapper function to print info to stderr, so we don't interfere with e.g. extraction output."""
         self.info_counts[arg0] += 1
         # if self.is_verbose:
-        arg0 = 'Info: ' + arg0 + '\n'
+        arg0 = "Info: " + arg0 + "\n"
         sys.stderr.write(arg0)
 
     @property
@@ -173,21 +176,21 @@ def round_to_int(n, i):
 
 
 def chunker(seq, size):
-    """ Utility function to chunk seq into a list of size sized sequences. """
-    return (seq[pos:pos + size] for pos in range(0, len(seq), size))
+    """Utility function to chunk seq into a list of size sized sequences."""
+    return (seq[pos : pos + size] for pos in range(0, len(seq), size))
 
 
 def rstrip_padding(bytestring):
-    """ Takes a bytestring and strips trailing 0xFFFFFFFF dwords. """
+    """Takes a bytestring and strips trailing 0xFFFFFFFF dwords."""
     i = 0
-    while bytestring[-(4 + i):len(bytestring) - i] == b'\xff\xff\xff\xff':
+    while bytestring[-(4 + i) : len(bytestring) - i] == b"\xff\xff\xff\xff":
         i += 4
-    return bytestring[:len(bytestring) - i]
+    return bytestring[: len(bytestring) - i]
 
 
 def shannon(s):
-    """ Performs a Shannon entropy analysis on a given block of s.
-    from: https://github.com/ReFirmLabs/binwalk """
+    """Performs a Shannon entropy analysis on a given block of s.
+    from: https://github.com/ReFirmLabs/binwalk"""
 
     entropy = 0
 
@@ -208,15 +211,15 @@ def shannon(s):
 
 # The order is important here, as 78da is the most common magic and others might produce false positives
 ZLIB_TYPES = {
-    b'\x78\xda': 'Zlib compressed data, best compression',
-    b'\x78\x9c': 'Zlib compressed data, default compression',
-    b'\x78\x5e': 'Zlib compressed data, compressed',
-    b'\x78\x01': 'Zlib header, no compression'
+    b"\x78\xda": "Zlib compressed data, best compression",
+    b"\x78\x9c": "Zlib compressed data, default compression",
+    b"\x78\x5e": "Zlib compressed data, compressed",
+    b"\x78\x01": "Zlib header, no compression",
 }
 
 
 def zlib_find_header(s):
-    """ Checks s for any zlib magic bytes and returns the offset (or -1). """
+    """Checks s for any zlib magic bytes and returns the offset (or -1)."""
 
     # Only check the first 0x500 bytes, as the rest is too unlikely to be valid
     s = s[:0x500]
@@ -239,8 +242,8 @@ def zlib_compress(s):
 
 
 def zlib_decompress(s):
-    """ Checks s for the first appearance of a zlib header and returns the uncompressed start of s as well as the
-    decompressed section. If no zlib header is found, s is returned as is. """
+    """Checks s for the first appearance of a zlib header and returns the uncompressed start of s as well as the
+    decompressed section. If no zlib header is found, s is returned as is."""
 
     zlib_start = zlib_find_header(s)
 
@@ -255,8 +258,8 @@ def zlib_decompress(s):
 
 
 def decrypt_ecb(data, key):
-    """ Decrypts 'data' with 'key' using AES-128 in ECB mode.
-    Return the decrypted data. """
+    """Decrypts 'data' with 'key' using AES-128 in ECB mode.
+    Return the decrypted data."""
     backend = default_backend()
 
     cipher_ecb = Cipher(algorithms.AES(key), modes.ECB(), backend=backend)
@@ -265,8 +268,8 @@ def decrypt_ecb(data, key):
 
 
 def decrypt_cbd(data, iv, key):
-    """ Decrypts 'data' with 'key' using AES-128 in CBC mode.
-    Returns the decrypted data. """
+    """Decrypts 'data' with 'key' using AES-128 in CBC mode.
+    Returns the decrypted data."""
 
     backend = default_backend()
     cipher_cbc = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
@@ -275,9 +278,9 @@ def decrypt_cbd(data, iv, key):
 
 
 def decrypt(data, entry_key, unwrapped_ikek, iv):
-    """ Decrypts an entry. The entry key is stored at offset 0x80 of the respective header,
+    """Decrypts an entry. The entry key is stored at offset 0x80 of the respective header,
     the IV is stored at offset 0x20. An already unwrapped IKEK is required to perform this
-    operation. """
+    operation."""
     unwrapped_entry_key = decrypt_ecb(entry_key, unwrapped_ikek)
 
     return decrypt_cbd(data, iv, unwrapped_entry_key)
@@ -288,7 +291,7 @@ def fletcher32(s):
     c1 = 0xFFFF
 
     for index, byte_pair in enumerate(chunker(s, 2)):  # fletcher is calculated over 16bit words, i.e. 2 bytes
-        byte_pair_int = struct.unpack('<H', byte_pair)[0]
+        byte_pair_int = struct.unpack("<H", byte_pair)[0]
 
         c0 += byte_pair_int
         c1 += c0
@@ -304,10 +307,10 @@ def fletcher32(s):
     c1 = (c1 & 0xFFFF) + (c1 >> 16)
 
     checksum = (c1 << 16) | c0
-    return struct.pack('<I', checksum)
+    return struct.pack("<I", checksum)
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def sole(set_of_one: Set[T], assert_msg="Set does not contain exactly one element") -> T:

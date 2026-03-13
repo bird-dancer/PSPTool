@@ -8,7 +8,7 @@ dynamic = ["version"]
 authors = [{name = "Christian Werling", email = "cwerling@posteo.de"}]
 description = "PSPTool is a tool for dealing with AMD binary blobs"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
     "cryptography>=38.0.0",
     "prettytable",
@@ -19,3 +19,16 @@ psptool = "psptool.__main__:main"
 
 [tool.hatch.version]
 source = "vcs"
+
+[project.optional-dependencies]
+lint = ["ruff"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "C90"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10

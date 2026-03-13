@@ -14,12 +14,14 @@ except FileNotFoundError:
 if len(files) == 0:
     print("Failed to generate output metrics (No files found in `tests/integration/fixtures/roms`)")
     exit(0)
-    
+
 stdout_lines = 0
 stderr_lines = 0
 
 for file in files:
-    process = subprocess.run(["psptool", f"tests/integration/fixtures/roms/{file}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.run(
+        ["psptool", f"tests/integration/fixtures/roms/{file}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     stdout_lines += len(process.stdout.decode().splitlines())
     stderr_lines += len(process.stderr.decode().splitlines())
 
@@ -41,8 +43,8 @@ failed = 0
 # supress output
 stdout = sys.stdout
 # stderr = sys.stderr
-sys.stdout = open(os.devnull, 'w')
-sys.stderr = open(os.devnull, 'w')
+sys.stdout = open(os.devnull, "w")
+sys.stderr = open(os.devnull, "w")
 
 # imported here to supress output from psptool
 from psptool import PSPTool
@@ -50,7 +52,6 @@ from psptool import PSPTool
 failed_files = []
 for file in files:
     try:
-        
         p = PSPTool.from_file(f"tests/integration/fixtures/roms/{file}")
         successful += 1
     except:
