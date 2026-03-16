@@ -26,6 +26,8 @@ from .file import File
 from .pubkey_file import PubkeyFile, InlinePubkeyFile
 
 
+
+
 class Blob(NestedBuffer):
     _FIRMWARE_ENTRY_MAGIC = b'\xAA\x55\xAA\x55'
     # All structures per Rom must be in 16MB windows
