@@ -27,6 +27,8 @@ from . import errors
 # Tree Types
 
 
+
+
 class SignedEntity:
     def __init__(self, file, certifying_id: KeyId, signature: Signature, psptool):
         self.psptool = psptool
