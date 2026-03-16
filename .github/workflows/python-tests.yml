@@ -118,7 +118,6 @@ jobs:
         with:
           name: metrics-data
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id }}
 
       - name: Post comment
         env:
