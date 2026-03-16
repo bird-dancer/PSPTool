@@ -107,6 +107,7 @@ jobs:
           path: metrics.md
 
   comment-metrics:
+    if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     needs: create-metrics
     permissions:
@@ -118,7 +119,6 @@ jobs:
         with:
           name: metrics-data
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id }}
 
       - name: Post comment
         env:
