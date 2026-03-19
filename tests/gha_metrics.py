@@ -78,5 +78,3 @@ if failed_files:
         print(f"- `{file}`")
 else:
     print("*All files parsed successfully!*")
-
-print("<!-- PSPTOOL-METRICS-MARKER -->")
