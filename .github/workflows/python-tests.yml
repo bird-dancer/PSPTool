@@ -124,7 +124,7 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
-          body-includes: <!-- PSPTOOL-METRICS-MARKER -->
+          body-includes: '<!-- PSPTOOL-METRICS-MARKER -->'
 
       - name: create or update comment
         uses: peter-evans/create-or-update-comment@v5
