@@ -70,7 +70,6 @@ jobs:
     needs: get-fixtures
     permissions:
       contents: read
-    python-version: "3.14"
     steps:
       - name: Checkout PR
         uses: actions/checkout@v6
@@ -83,10 +82,10 @@ jobs:
           name: saved-fixtures
           path: tests/integration/fixtures
 
-      - name: Set up Python ${{ python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ python-version }}
+          python-version: "3.14"
           cache: 'pip'
 
       - name: Install dependencies
